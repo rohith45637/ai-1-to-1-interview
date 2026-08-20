@@ -242,6 +242,12 @@ async def submit_answer(submission: AnswerSubmissionRequest, db: Session = Depen
             )
         }
 
+    # Save presentation metrics if provided by client webcam analysis
+    if submission.presentation_metrics:
+        interview.presentation_metrics = submission.presentation_metrics
+        db.add(interview)
+        db.commit()
+
     if current_q_count >= interview.total_questions:
         interview.status = "completed"
         interview.completed_at = datetime.utcnow()
@@ -493,6 +499,22 @@ def get_interview_report(interview_id: str, db: Session = Depends(get_db)):
         role_knowledge=cats.get("role_knowledge", 74.0)
     )
 
+    pres_raw = interview.presentation_metrics or {}
+    pres_analysis_dto = None
+    if pres_raw:
+        pres_analysis_dto = {
+            "camera_presence": pres_raw.get("camera_presence", 85.0),
+            "posture": pres_raw.get("posture", "Good"),
+            "camera_attention": pres_raw.get("camera_attention", "Good"),
+            "movement": pres_raw.get("movement", "Stable"),
+            "overall_presentation_score": pres_raw.get("overall_presentation_score", 82.0),
+            "recommendations": pres_raw.get("recommendations", [
+                "Position the camera at eye level for comfortable engagement.",
+                "Maintain a relaxed, upright posture throughout the session."
+            ]),
+            "is_available": pres_raw.get("is_available", True)
+        }
+
     return InterviewReportResponse(
         id=interview.id,
         job_role=interview.job_role,
@@ -508,6 +530,7 @@ def get_interview_report(interview_id: str, db: Session = Depends(get_db)):
         weak_areas=interview.weak_areas or [],
         strong_areas=interview.strong_areas or [],
         communication_summary=interview.communication_summary or {},
+        presentation_analysis=pres_analysis_dto,
         improvement_plan=interview.improvement_plan or [],
         recommended_next_interview=interview.recommended_next_interview or {},
         items=detail_items,
@@ -533,6 +556,7 @@ def get_interview_history(db: Session = Depends(get_db)):
             mode=i.mode,
             status=i.status,
             overall_score=i.overall_score,
+            presentation_score=(i.presentation_metrics or {}).get("overall_presentation_score"),
             weak_areas=i.weak_areas or [],
             strong_areas=i.strong_areas or [],
             created_at=i.created_at,

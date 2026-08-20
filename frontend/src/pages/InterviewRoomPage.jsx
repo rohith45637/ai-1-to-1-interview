@@ -42,6 +42,11 @@ export function InterviewRoomPage({
 
   // Reference to prevent duplicate speech of the same question ID
   const spokenQuestionIdRef = useRef(null);
+  const presentationMetricsRef = useRef(null);
+
+  const handleUpdatePresentationMetrics = useCallback((metrics) => {
+    presentationMetricsRef.current = metrics;
+  }, []);
 
   const {
     isListening,
@@ -240,7 +245,8 @@ export function InterviewRoomPage({
       const payload = {
         interview_id: currentQuestion.interview_id,
         question_id: currentQuestion.id,
-        user_answer: answerText || userAnswer || '(No response recorded)'
+        user_answer: answerText || userAnswer || '(No response recorded)',
+        presentation_metrics: presentationMetricsRef.current || undefined
       };
 
       const result = await interviewsApi.submitAnswer(payload);
@@ -452,6 +458,7 @@ export function InterviewRoomPage({
           candidateName={user?.name || 'Candidate'}
           onToggleMic={handleToggleVoiceRecognition}
           isMicMuted={!isListening}
+          onUpdatePresentationMetrics={handleUpdatePresentationMetrics}
         />
       </div>
 

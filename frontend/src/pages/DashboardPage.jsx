@@ -295,6 +295,9 @@ export function DashboardPage({ onStartPractice, onPracticeWeakSkills, onViewRep
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="brand" size="sm">{item.difficulty}</Badge>
                     <Badge variant="purple" size="sm">{item.interview_type}</Badge>
+                    {item.presentation_score && (
+                      <Badge variant="success" size="sm">Presentation: {Math.round(item.presentation_score)}%</Badge>
+                    )}
                     <span className="text-[11px] text-surface-400">• {new Date(item.created_at).toLocaleDateString()}</span>
                   </div>
 

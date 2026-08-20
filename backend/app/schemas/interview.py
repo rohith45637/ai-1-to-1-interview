@@ -18,6 +18,7 @@ class AnswerSubmissionRequest(BaseModel):
     question_id: str
     user_answer: str
     answer_duration_seconds: Optional[int] = None
+    presentation_metrics: Optional[Dict[str, Any]] = None
 
 class CommunicationFeedback(BaseModel):
     clarity_level: str # 'High', 'Moderate', 'Needs Work'
@@ -79,6 +80,15 @@ class InterviewDetailItem(BaseModel):
     user_answer: Optional[str] = None
     evaluation: Optional[AnswerEvaluationResponse] = None
 
+class PresentationAnalysisMetrics(BaseModel):
+    camera_presence: float = 85.0
+    posture: str = "Good" # 'Excellent', 'Good', 'Needs Improvement'
+    camera_attention: str = "Good" # 'Good', 'Moderate', 'Needs Improvement'
+    movement: str = "Stable" # 'Stable', 'Good', 'Excessive'
+    overall_presentation_score: float = 82.0
+    recommendations: List[str] = []
+    is_available: bool = True
+
 class InterviewReportResponse(BaseModel):
     id: str
     job_role: str
@@ -94,6 +104,7 @@ class InterviewReportResponse(BaseModel):
     weak_areas: List[str]
     strong_areas: List[str]
     communication_summary: Dict[str, Any]
+    presentation_analysis: Optional[PresentationAnalysisMetrics] = None
     improvement_plan: List[str]
     recommended_next_interview: Dict[str, Any]
     items: List[InterviewDetailItem]
@@ -110,6 +121,7 @@ class InterviewHistorySummary(BaseModel):
     mode: str
     status: str
     overall_score: float
+    presentation_score: Optional[float] = None
     weak_areas: List[str]
     strong_areas: List[str]
     created_at: datetime

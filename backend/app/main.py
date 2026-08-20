@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 from app.config import settings
-from app.database import engine, Base
+from app.database import init_db
 from app.routes.auth import router as auth_router
 from app.routes.roles import router as roles_router
 from app.routes.resumes import router as resumes_router
@@ -14,7 +14,7 @@ from app.routes.analytics import router as analytics_router
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("main")
 
-Base.metadata.create_all(bind=engine)
+init_db()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

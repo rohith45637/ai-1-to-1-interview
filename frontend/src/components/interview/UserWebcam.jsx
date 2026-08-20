@@ -1,17 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, CameraOff, Mic, MicOff, User, AlertCircle, RefreshCw } from 'lucide-react';
+import { Camera, CameraOff, Mic, MicOff, User, AlertCircle, RefreshCw, Sparkles, Eye } from 'lucide-react';
+import { usePresentationAnalysis } from '../../hooks/usePresentationAnalysis';
 
 export function UserWebcam({ 
   isListening = false, 
   candidateName = 'Candidate', 
   onToggleMic, 
-  isMicMuted = false 
+  isMicMuted = false,
+  onUpdatePresentationMetrics
 }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [cameraActive, setCameraActive] = useState(true);
   const [permissionState, setPermissionState] = useState('requesting'); // 'requesting', 'granted', 'denied'
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Presentation & Body Language Analysis Hook
+  const { activeWarning, presentationMetrics } = usePresentationAnalysis(
+    videoRef, 
+    cameraActive && permissionState === 'granted'
+  );
+
+  // Propagate updated presentation metrics to parent
+  useEffect(() => {
+    if (onUpdatePresentationMetrics && presentationMetrics) {
+      onUpdatePresentationMetrics(presentationMetrics);
+    }
+  }, [presentationMetrics, onUpdatePresentationMetrics]);
 
   useEffect(() => {
     startCamera();
@@ -96,7 +111,14 @@ export function UserWebcam({
                 Live
               </span>
             </div>
-            <span className="text-[10px] text-surface-400">Candidate Video Feed</span>
+            <div className="flex items-center gap-1.5 text-[10px] text-surface-400">
+              <span>Candidate Video Feed</span>
+              {permissionState === 'granted' && cameraActive && (
+                <span className="text-emerald-400 flex items-center gap-1">
+                  • <Eye className="w-2.5 h-2.5" /> Presentation Active
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -122,6 +144,16 @@ export function UserWebcam({
         </div>
       </div>
 
+      {/* NON-INTRUSIVE REAL-TIME PRESENTATION WARNING TOAST */}
+      {activeWarning && (
+        <div className="relative z-30 mx-auto max-w-sm w-full animate-fade-in transition-all">
+          <div className="p-2.5 px-3.5 rounded-2xl bg-amber-950/90 border border-amber-500/50 shadow-xl backdrop-blur-md flex items-center gap-2 text-amber-200 text-xs font-medium">
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+            <span className="leading-tight">{activeWarning}</span>
+          </div>
+        </div>
+      )}
+
       {/* Video Center Stage */}
       <div className="absolute inset-0 flex items-center justify-center z-10 overflow-hidden">
         {permissionState === 'granted' && cameraActive ? (
@@ -143,7 +175,7 @@ export function UserWebcam({
                 {permissionState === 'denied' ? 'Audio-Only Mode' : 'Camera is Turned Off'}
               </p>
               <p className="text-[11px] text-surface-400 leading-tight">
-                {errorMessage || 'Your microphone is still active for speaking answers.'}
+                {errorMessage || 'Camera unavailable. You can continue the interview normally, but presentation analysis will be unavailable.'}
               </p>
             </div>
 

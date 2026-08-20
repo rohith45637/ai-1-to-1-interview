@@ -231,6 +231,83 @@ export function InterviewReportPage({ interviewId, onPracticeWeakSkills, onRetak
         </Card>
       )}
 
+      {/* INTERVIEW PRESENTATION ANALYSIS (WEBCAM & BODY LANGUAGE) */}
+      {report.presentation_analysis && report.presentation_analysis.is_available !== false ? (
+        <Card className="space-y-5 p-6 border-2 border-indigo-500/20 bg-gradient-to-br from-white via-white to-indigo-50/20 dark:from-surface-900 dark:via-surface-900 dark:to-indigo-950/20 shadow-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-surface-200 dark:border-surface-800">
+            <div className="flex items-center gap-2 font-bold text-sm text-surface-900 dark:text-white">
+              <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <span>Interview Presentation Analysis</span>
+              <Badge variant="purple" size="sm">Non-Diagnostic Feedback</Badge>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-surface-500 font-medium">Overall Presentation:</span>
+              <span className="text-base font-black text-indigo-600 dark:text-indigo-400">
+                {Math.round(report.presentation_analysis.overall_presentation_score || 82)}%
+              </span>
+            </div>
+          </div>
+
+          {/* 4 Presentation Metric Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div className="p-3.5 rounded-2xl bg-surface-50 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700 space-y-1">
+              <span className="text-[11px] font-bold text-surface-500 uppercase block">Camera Presence</span>
+              <div className="text-xl font-black text-surface-900 dark:text-white">
+                {Math.round(report.presentation_analysis.camera_presence || 85)}%
+              </div>
+              <span className="text-[10px] text-surface-400">Face framing in center</span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-surface-50 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700 space-y-1">
+              <span className="text-[11px] font-bold text-surface-500 uppercase block">Sitting Posture</span>
+              <div className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                {report.presentation_analysis.posture || 'Good'}
+              </div>
+              <span className="text-[10px] text-surface-400">Upright & stable position</span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-surface-50 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700 space-y-1">
+              <span className="text-[11px] font-bold text-surface-500 uppercase block">Camera Attention</span>
+              <div className="text-xl font-black text-indigo-600 dark:text-indigo-400">
+                {report.presentation_analysis.camera_attention || 'Good'}
+              </div>
+              <span className="text-[10px] text-surface-400">Facing & eye engagement</span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-surface-50 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700 space-y-1">
+              <span className="text-[11px] font-bold text-surface-500 uppercase block">Movement Stability</span>
+              <div className="text-xl font-black text-brand-600 dark:text-brand-400">
+                {report.presentation_analysis.movement || 'Stable'}
+              </div>
+              <span className="text-[10px] text-surface-400">Steady body posture</span>
+            </div>
+          </div>
+
+          {/* Presentation Recommendations */}
+          {report.presentation_analysis.recommendations && report.presentation_analysis.recommendations.length > 0 && (
+            <div className="p-3.5 rounded-xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-900/60 space-y-1.5">
+              <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 block">Personalized Presentation Recommendations:</span>
+              <ul className="space-y-1 text-xs text-surface-700 dark:text-surface-300">
+                {report.presentation_analysis.recommendations.map((rec, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="text-indigo-500 font-bold">•</span>
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Card>
+      ) : (
+        <Card className="p-4 bg-surface-50 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700 flex items-center justify-between text-xs text-surface-500">
+          <span>Presentation analysis was unavailable for this audio session.</span>
+          <span className="text-[11px] text-surface-400">Enable webcam in future sessions for body-language feedback.</span>
+        </Card>
+      )}
+
       {/* QUESTION BY QUESTION ACCORDION REVIEW */}
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-surface-900 dark:text-white flex items-center gap-2">

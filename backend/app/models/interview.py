@@ -36,6 +36,7 @@ class Interview(Base):
     weak_areas = Column(JSON, default=list)
     strong_areas = Column(JSON, default=list)
     communication_summary = Column(JSON, default=dict)
+    presentation_metrics = Column(JSON, default=dict)
     improvement_plan = Column(JSON, default=list)
     recommended_next_interview = Column(JSON, default=dict)
 
