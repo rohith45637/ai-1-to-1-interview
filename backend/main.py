@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 
 # Ensure backend directory is in python path
