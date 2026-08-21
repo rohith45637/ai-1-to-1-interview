@@ -12,3 +12,6 @@ if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
 from app.main import app
+
+# Expose app and handler for Vercel Serverless Function entrypoint
+handler = app

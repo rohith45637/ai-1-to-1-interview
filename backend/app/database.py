@@ -16,18 +16,22 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
-    if settings.DATABASE_URL.startswith("sqlite"):
-        with engine.connect() as conn:
-            for col_sql in [
-                "ALTER TABLE interviews ADD COLUMN presentation_metrics JSON",
-                "ALTER TABLE interviews ADD COLUMN duration_minutes INTEGER DEFAULT 15"
-            ]:
-                try:
-                    conn.execute(text(col_sql))
-                    conn.commit()
-                except Exception:
-                    pass
+    try:
+        Base.metadata.create_all(bind=engine)
+        if settings.DATABASE_URL.startswith("sqlite"):
+            with engine.connect() as conn:
+                for col_sql in [
+                    "ALTER TABLE interviews ADD COLUMN presentation_metrics JSON",
+                    "ALTER TABLE interviews ADD COLUMN duration_minutes INTEGER DEFAULT 15"
+                ]:
+                    try:
+                        conn.execute(text(col_sql))
+                        conn.commit()
+                    except Exception:
+                        pass
+    except Exception as e:
+        import logging
+        logging.getLogger("database").warning(f"Database init warning (non-fatal): {e}")
 
 def get_db():
     db = SessionLocal()

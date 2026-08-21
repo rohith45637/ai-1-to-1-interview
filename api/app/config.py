@@ -1,12 +1,18 @@
-﻿from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings
 from typing import List
 import os
+import tempfile
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "1 to 1 Interview"
     PROJECT_VERSION: str = "1.0.0"
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./interview.db")
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        f"sqlite:///{os.path.join(tempfile.gettempdir(), 'interview.db').replace(os.sep, '/')}"
+        if (os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+        else "sqlite:///./interview.db"
+    )
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000")
     MAX_UPLOAD_SIZE_MB: int = 10
