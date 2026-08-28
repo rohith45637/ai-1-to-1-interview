@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
@@ -55,8 +55,7 @@ class ResumeUploadResponse(BaseModel):
     role_matches: List[RoleMatchResult]
     uploaded_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ResumeVersionSummary(BaseModel):
     id: str

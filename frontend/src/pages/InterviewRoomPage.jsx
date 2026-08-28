@@ -10,9 +10,8 @@ import { useAuth } from '../context/AuthContext';
 import { interviewsApi } from '../services/api';
 import { 
   Clock, Sparkles, Send, SkipForward, Hourglass, 
-  CornerDownRight, CheckCircle2, AlertCircle, 
-  ThumbsUp, ThumbsDown, ArrowRight, MessageSquare, 
-  RotateCcw, Volume2, VolumeX, Keyboard, Mic, MicOff, Play
+  CornerDownRight, ArrowRight, 
+  RotateCcw, Volume2, VolumeX, Keyboard, Mic, MicOff
 } from 'lucide-react';
 
 export function InterviewRoomPage({ 

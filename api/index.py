@@ -13,24 +13,14 @@ if backend_dir not in sys.path:
 
 from app.main import app as fastapi_app
 
-class VercelPathNormalizer:
-    def __init__(self, asgi_app):
-        self.asgi_app = asgi_app
-
-    async def __call__(self, scope, receive, send):
-        if scope["type"] == "http":
-            path = scope.get("path", "")
-            if "/index.py" in path:
-                path = path.replace("/index.py", "")
-            if not path.startswith("/api"):
-                path = "/api" + (path if path.startswith("/") else "/" + path)
-            if path in ("/api", "/api/"):
-                path = "/api/health"
-            scope["path"] = path
-            if "raw_path" in scope:
-                scope["raw_path"] = path.encode("utf-8")
-        await self.asgi_app(scope, receive, send)
-
-# Expose both app and handler wrapped for 100% resilient Vercel routing
-app = VercelPathNormalizer(fastapi_app)
+# Vercel's Python runtime forwards the real, original request path
+# (e.g. /api/health) straight into the ASGI scope for functions that
+# export an ASGI `app` — no path rewriting/normalization is needed or
+# supported. See: https://vercel.com/docs/frameworks/backend/fastapi
+# ("Vercel natively supports ASGI apps - just export the app directly").
+# The previous VercelPathNormalizer wrapper mutated scope["path"] based
+# on an incorrect assumption about how Vercel forwards paths, which is
+# why /api/health and friends were resolving to FastAPI's own 404
+# handler ({"detail":"Not Found"}) instead of the real routes.
+app = fastapi_app
 handler = app

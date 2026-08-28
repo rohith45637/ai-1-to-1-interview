@@ -3,10 +3,7 @@ import { Modal } from '../components/common/Modal';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { rolesApi } from '../services/api';
-import { 
-  Sliders, Bot, Sparkles, Mic, FileText, CheckCircle2, 
-  HelpCircle, ArrowRight, Shield, Zap, Target, Clock, Camera
-} from 'lucide-react';
+import { Sparkles, Clock } from 'lucide-react';
 
 export function InterviewConfigModal({
   isOpen,

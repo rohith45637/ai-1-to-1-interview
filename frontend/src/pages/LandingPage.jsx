@@ -4,11 +4,11 @@ import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { rolesApi } from '../services/api';
 import { 
-  FileUp, Sparkles, Target, Bot, BrainCircuit, CheckCircle2, 
-  ArrowRight, Zap, Shield, Layers, Mic, Sliders, TrendingUp, Search, BookOpen
+  FileUp, Sparkles, Bot, CheckCircle2, 
+  ArrowRight, Layers, Search
 } from 'lucide-react';
 
-export function LandingPage({ onStartDirectInterview, onNavigateToResume, onNavigateToWeakSkills }) {
+export function LandingPage({ onStartDirectInterview, onNavigateToResume }) {
   const [roles, setRoles] = useState([]);
   const [loadingRoles, setLoadingRoles] = useState(true);
   const [selectedRole, setSelectedRole] = useState(null);

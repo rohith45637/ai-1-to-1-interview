@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, Flame, Trophy, BarChart3, Target, 
-  CheckCircle2, AlertCircle, Sparkles, ArrowRight, Clock, Layers, FileText
+  CheckCircle2, AlertCircle, Sparkles, ArrowRight, Clock, FileText
 } from 'lucide-react';
 
 export function DashboardPage({ onStartPractice, onPracticeWeakSkills, onViewReport }) {
