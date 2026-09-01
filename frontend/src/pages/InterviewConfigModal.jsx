@@ -5,6 +5,29 @@ import { Badge } from '../components/common/Badge';
 import { rolesApi } from '../services/api';
 import { Sparkles, Clock } from 'lucide-react';
 
+const DEFAULT_ROLES = [
+  { id: 'full-stack-developer', title: 'Full Stack Developer', category: 'Software Engineering' },
+  { id: 'frontend-developer', title: 'Frontend Developer', category: 'Software Engineering' },
+  { id: 'backend-developer', title: 'Backend Developer', category: 'Software Engineering' },
+  { id: 'software-developer', title: 'Software Developer', category: 'Software Engineering' },
+  { id: 'python-developer', title: 'Python Developer', category: 'Software Engineering' },
+  { id: 'java-developer', title: 'Java Developer', category: 'Software Engineering' },
+  { id: 'ai-engineer', title: 'AI Engineer', category: 'Data & AI' },
+  { id: 'machine-learning-engineer', title: 'Machine Learning Engineer', category: 'Data & AI' },
+  { id: 'data-scientist', title: 'Data Scientist', category: 'Data & AI' },
+  { id: 'data-analyst', title: 'Data Analyst', category: 'Data & AI' },
+  { id: 'cybersecurity-analyst', title: 'Cybersecurity Analyst', category: 'Security & Cloud' },
+  { id: 'soc-analyst', title: 'SOC Analyst', category: 'Security & Cloud' },
+  { id: 'cloud-engineer', title: 'Cloud Engineer', category: 'Security & Cloud' },
+  { id: 'devops-engineer', title: 'DevOps Engineer', category: 'Infrastructure' },
+  { id: 'qa-engineer', title: 'QA Engineer', category: 'Software Engineering' },
+  { id: 'mobile-app-developer', title: 'Mobile App Developer', category: 'Software Engineering' },
+  { id: 'network-engineer', title: 'Network Engineer', category: 'Infrastructure' },
+  { id: 'database-administrator', title: 'Database Administrator', category: 'Infrastructure' },
+  { id: 'ui-ux-designer', title: 'UI/UX Designer', category: 'Design & Product' },
+  { id: 'business-analyst', title: 'Business Analyst', category: 'Design & Product' }
+];
+
 export function InterviewConfigModal({
   isOpen,
   onClose,
@@ -14,8 +37,9 @@ export function InterviewConfigModal({
   initialWeakSkills = null,
   onLaunchInterview
 }) {
-  const [roles, setRoles] = useState([]);
-  const [selectedRole, setSelectedRole] = useState(initialRole?.title || 'Full Stack Developer');
+  const [roles, setRoles] = useState(DEFAULT_ROLES);
+  const resolveRoleTitle = (r) => (typeof r === 'string' ? r : (r?.title || r?.role_title || 'Full Stack Developer'));
+  const [selectedRole, setSelectedRole] = useState(resolveRoleTitle(initialRole));
   const [interviewType, setInterviewType] = useState(initialType || 'Mixed');
   const [hrPercentage, setHrPercentage] = useState(20);
   const [difficulty, setDifficulty] = useState('Intermediate');
@@ -29,22 +53,26 @@ export function InterviewConfigModal({
     async function fetchRoles() {
       try {
         const data = await rolesApi.getRoles();
-        setRoles(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setRoles(data);
+        }
       } catch (err) {
-        console.error('Failed to fetch roles:', err);
+        console.warn('Using default roles fallback:', err);
       }
     }
     fetchRoles();
   }, []);
 
   useEffect(() => {
-    if (initialRole) {
-      setSelectedRole(initialRole.title || initialRole.role_title || initialRole);
+    if (isOpen) {
+      if (initialRole) {
+        setSelectedRole(resolveRoleTitle(initialRole));
+      }
+      if (initialType) {
+        setInterviewType(initialType);
+      }
     }
-    if (initialType) {
-      setInterviewType(initialType);
-    }
-  }, [initialRole, initialType]);
+  }, [isOpen, initialRole, initialType]);
 
   const hrCount = interviewType === 'HR' 
     ? totalQuestions 
@@ -84,8 +112,12 @@ export function InterviewConfigModal({
             onChange={(e) => setSelectedRole(e.target.value)}
             className="w-full p-2.5 rounded-xl border border-surface-300 dark:border-surface-700 bg-white dark:bg-surface-800 text-surface-900 dark:text-white font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none"
           >
+            {/* If selectedRole is custom or not in roles list, ensure it appears as an option */}
+            {selectedRole && !roles.some(r => r.title?.toLowerCase() === selectedRole.toLowerCase()) && (
+              <option value={selectedRole}>{selectedRole} (Selected / Resume Profile)</option>
+            )}
             {roles.map(r => (
-              <option key={r.id} value={r.title}>{r.title} ({r.category})</option>
+              <option key={r.id || r.title} value={r.title}>{r.title} ({r.category})</option>
             ))}
           </select>
         </div>

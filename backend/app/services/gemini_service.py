@@ -32,7 +32,7 @@ class GeminiService:
         try:
             import google.generativeai as gai
             gai.configure(api_key=self.api_key)
-            self.legacy_model = gai.GenerativeModel("gemini-2.5-flash")
+            self.legacy_model = gai.GenerativeModel("gemini-2.0-flash")
             self.sdk_type = "google_generativeai"
             logger.info("Initialized legacy google.generativeai client.")
             return
@@ -53,17 +53,18 @@ class GeminiService:
         Generate structured JSON response using Gemini, with intelligent fallback.
         """
         if self.api_key and self.client and getattr(self, "sdk_type", "") == "google_genai":
-            try:
-                response = self.client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt,
-                    config={"response_mime_type": "application/json"}
-                )
-                raw_text = response.text or ""
-                cleaned = self._clean_json_string(raw_text)
-                return json.loads(cleaned)
-            except Exception as e:
-                logger.error(f"Gemini API error: {e}. Attempting fallback parser.")
+            for model_name in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+                try:
+                    response = self.client.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                        config={"response_mime_type": "application/json"}
+                    )
+                    raw_text = response.text or ""
+                    cleaned = self._clean_json_string(raw_text)
+                    return json.loads(cleaned)
+                except Exception as e:
+                    logger.warning(f"Gemini API model {model_name} error: {e}")
 
         elif self.api_key and getattr(self, "legacy_model", None):
             try:
