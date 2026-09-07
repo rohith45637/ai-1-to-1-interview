@@ -128,3 +128,54 @@ Questions and Answers: __QA_HISTORY__
 
 Return JSON with overall_score, category_scores, skill_scores, weak_areas, strong_areas, communication_summary, improvement_plan, recommended_next_interview.
 """
+
+JD_MATCH_PROMPT = """You are a senior technical recruiter helping a candidate match their resume to a job description.
+
+Resume Content:
+{resume_text}
+
+Candidate Skills: {candidate_skills}
+
+Job Description:
+{job_description}
+
+Analyze the match and return ONLY a valid JSON object:
+{{
+  "match_score": <0-100 integer reflecting actual overlap>,
+  "matched_keywords": ["keyword1", "keyword2"],
+  "missing_keywords": ["keyword1", "keyword2"],
+  "missing_skills": ["skill1", "skill2"],
+  "recommended_additions": ["Add Docker to cloud skills section", "Mention CI/CD experience"],
+  "summary": "Brief 1-2 sentence analysis of the match"
+}}
+
+Rules:
+- match_score must reflect real overlap, not inflated
+- Only list keywords/skills actually present in the job description
+- Do NOT suggest adding fake experience, skills, or certifications the candidate doesn't have
+- Recommendations must be honest improvements based on existing candidate background
+"""
+
+AI_SECTION_IMPROVE_PROMPT = """You are an expert resume writer and ATS optimization specialist.
+
+Improve the following resume section for better ATS compatibility and professional impact.
+
+Section Type: {section}
+Current Content:
+{current_text}
+
+Candidate Context: {context}
+
+Rules (MANDATORY):
+- Do NOT invent or add fake companies, roles, skills, technologies, metrics, or achievements
+- Only improve writing quality, clarity, action verb usage, and ATS keyword optimization
+- Use strong action verbs (Developed, Implemented, Architected, Optimized, Led, Delivered)
+- Keep all factual information unchanged — only improve how it is written
+- If current content is weak/empty, return a professional template placeholder in square brackets
+
+Return ONLY a valid JSON object:
+{{
+  "improved_text": "The improved version of the section content",
+  "explanation": "Brief explanation of what was changed and why it is better"
+}}
+"""

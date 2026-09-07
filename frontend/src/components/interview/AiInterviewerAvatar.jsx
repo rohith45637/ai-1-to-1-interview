@@ -12,18 +12,23 @@ export function AiInterviewerAvatar({
   const state = isSpeaking ? 'speaking' : isListening ? 'listening' : interviewerState;
 
   const stateBadge = {
-    greeting: { text: 'Welcoming Candidate', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', icon: Sparkles },
-    speaking: { text: 'Speaking Question', color: 'bg-brand-500/20 text-brand-300 border-brand-500/40 animate-pulse', icon: Volume2 },
-    listening: { text: 'Attentively Listening...', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 animate-pulse', icon: Mic },
-    thinking: { text: 'Evaluating Technical Depth...', color: 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse', icon: BrainCircuit },
-    idle: { text: 'Interview in Progress', color: 'bg-surface-800 text-surface-300 border-surface-700', icon: Bot },
+    greeting: { text: 'Welcoming Candidate', color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', icon: Sparkles },
+    speaking: { text: 'AI is speaking...', color: 'bg-brand-500/20 text-brand-300 border-brand-500/40 animate-pulse', icon: Volume2 },
+    listening: { text: 'Listening to response...', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 animate-pulse', icon: Mic },
+    thinking: { text: 'Analyzing technical depth...', color: 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse', icon: BrainCircuit },
+    idle: { text: 'Interview Active', color: 'bg-surface-800 text-surface-300 border-surface-700', icon: Bot },
   }[state] || { text: 'Interview Active', color: 'bg-surface-800 text-surface-300 border-surface-700', icon: Bot };
 
   const StateIcon = stateBadge.icon;
 
   return (
-    <div className="relative w-full h-full min-h-[300px] sm:min-h-[350px] lg:min-h-[380px] rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-950 to-surface-950 border-2 border-surface-800 shadow-2xl flex flex-col justify-between p-5">
+    <div className="relative w-full h-full min-h-[300px] sm:min-h-[340px] rounded-3xl overflow-hidden bg-gradient-to-br from-surface-900 via-surface-925 to-surface-950 border border-surface-800 shadow-2xl flex flex-col justify-between p-5 group">
       
+      {/* Subtle ambient light behind avatar */}
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-3xl pointer-events-none transition-all duration-500 ${
+        state === 'speaking' ? 'bg-brand-500/20' : state === 'listening' ? 'bg-indigo-500/20' : 'bg-transparent'
+      }`} />
+
       {/* Top Header Profile */}
       <div className="relative z-10 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-3">
@@ -34,27 +39,27 @@ export function AiInterviewerAvatar({
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-sm text-white">{interviewerName}</h3>
               <span className="text-[10px] bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                AI Interviewer
+                Interviewer
               </span>
             </div>
             <p className="text-[11px] text-surface-400 font-medium">{interviewerTitle}</p>
           </div>
         </div>
 
-        <div className={'flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md transition-all ' + stateBadge.color}>
+        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md transition-all ${stateBadge.color}`}>
           <StateIcon className="w-3.5 h-3.5" />
           <span>{stateBadge.text}</span>
         </div>
       </div>
 
-      {/* Center Stage Avatar */}
-      <div className="relative z-10 my-auto flex flex-col items-center justify-center text-center py-4">
+      {/* Center Stage Avatar Visual */}
+      <div className="relative z-10 my-auto flex flex-col items-center justify-center text-center py-3">
         <div className="relative">
           {state === 'speaking' && (
-            <div className="absolute -inset-2 rounded-full border-2 border-brand-400/40 animate-pulse" />
+            <div className="absolute -inset-3 rounded-full border-2 border-brand-400/40 animate-ping opacity-30" />
           )}
 
-          <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-gradient-to-b from-brand-500 via-indigo-500 to-purple-600 shadow-2xl flex items-center justify-center overflow-hidden">
+          <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full p-1 bg-gradient-to-b from-brand-500 via-indigo-500 to-purple-600 shadow-2xl flex items-center justify-center overflow-hidden">
             <div className="w-full h-full rounded-full bg-slate-900 overflow-hidden relative flex items-center justify-center">
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900 to-indigo-950" />
 
@@ -97,33 +102,33 @@ export function AiInterviewerAvatar({
         <div className="mt-3 max-w-xs text-center space-y-1">
           {state === 'speaking' && (
             <p className="text-xs text-brand-300 font-semibold animate-pulse">
-              Speaking question aloud...
+              AI Interviewer is speaking question aloud...
             </p>
           )}
           {state === 'listening' && (
             <p className="text-xs text-indigo-300 font-semibold animate-pulse">
-              Listening to your answer...
+              Listening attentively to candidate...
             </p>
           )}
           {state === 'thinking' && (
             <p className="text-xs text-amber-300 font-semibold animate-pulse">
-              Analyzing technical depth & communication...
+              Evaluating answer against evaluation rubrics...
             </p>
           )}
           {targetSkill && (
-            <span className="inline-block text-[10px] text-surface-400 bg-surface-900/80 px-2.5 py-0.5 rounded-full border border-surface-800">
-              Focus Skill: <strong className="text-surface-200">{targetSkill}</strong>
+            <span className="inline-block text-[10px] text-surface-400 bg-surface-900 px-2.5 py-0.5 rounded-full border border-surface-800">
+              Assessing Skill: <strong className="text-white">{targetSkill}</strong>
             </span>
           )}
         </div>
       </div>
 
-      <div className="relative z-10 pt-2 border-t border-surface-800/80 flex items-center justify-between text-[11px] text-surface-400">
+      <div className="relative z-10 pt-2 border-t border-surface-800 flex items-center justify-between text-[11px] text-surface-400">
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>AI Audio: Active</span>
+          <span className="text-emerald-400 font-semibold">AI Audio Active</span>
         </span>
-        <span>Executive 1-to-1 Interview</span>
+        <span>Executive 1:1 Assessment</span>
       </div>
     </div>
   );

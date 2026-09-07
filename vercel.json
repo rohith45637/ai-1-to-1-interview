@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "api/index.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb"
+      }
     },
     {
       "src": "frontend/package.json",
@@ -19,16 +22,7 @@
       "dest": "/api/index.py"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/frontend/dist/assets/$1"
-    },
-    {
-      "src": "/favicon.svg",
-      "dest": "/frontend/dist/favicon.svg"
-    },
-    {
-      "src": "/icons.svg",
-      "dest": "/frontend/dist/icons.svg"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",

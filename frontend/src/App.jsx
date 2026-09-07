@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/layout/Navbar';
@@ -11,9 +11,22 @@ import { InterviewReportPage } from './pages/InterviewReportPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { WeakSkillsPracticePage } from './pages/WeakSkillsPracticePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { MediaTestPage } from './pages/MediaTestPage';
 
 function AppContent() {
-  const [activeTab, setActiveTab] = useState('landing');
+  // Support initial direct path navigation like /media-test
+  const getInitialTab = () => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path === '/media-test' || path.includes('media-test')) return 'media-test';
+      if (path === '/dashboard') return 'dashboard';
+      if (path === '/resume') return 'resume';
+      if (path === '/settings') return 'settings';
+    }
+    return 'landing';
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [configRole, setConfigRole] = useState(null);
   const [configResumeId, setConfigResumeId] = useState(null);
@@ -24,6 +37,18 @@ function AppContent() {
   const [activeInterviewConfig, setActiveInterviewConfig] = useState(null);
   const [viewingReportId, setViewingReportId] = useState(null);
   const [viewingResumeAts, setViewingResumeAts] = useState(null);
+
+  // Listen to browser popstate (back/forward)
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const path = window.location.pathname.toLowerCase();
+      if (path === '/media-test' || path.includes('media-test')) {
+        setActiveTab('media-test');
+      }
+    };
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
 
   // Trigger from Landing Page or Direct Roles
   const handleStartDirectInterview = (role) => {
@@ -79,9 +104,9 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-50 dark:bg-surface-950 text-surface-900 dark:text-surface-100 flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col font-sans selection:bg-brand-500 selection:text-white">
       
-      {/* Top Navbar without separate History tab */}
+      {/* Top Navbar */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Main Content Area */}
@@ -139,6 +164,10 @@ function AppContent() {
           />
         )}
 
+        {activeTab === 'media-test' && (
+          <MediaTestPage />
+        )}
+
         {activeTab === 'settings' && (
           <SettingsPage />
         )}
@@ -156,10 +185,22 @@ function AppContent() {
       />
 
       {/* Modern Footer */}
-      <footer className="border-t border-surface-200 dark:border-surface-800 bg-white/50 dark:bg-surface-900/50 py-6 text-center text-xs text-surface-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer className="border-t border-surface-800/80 bg-surface-950/60 backdrop-blur-md py-6 text-center text-xs text-surface-400">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>&copy; {new Date().getFullYear()} <strong>1 to 1 Interview</strong> • Powered by Google DeepMind Gemini</span>
-          <span className="text-surface-400">Professional 1:1 AI Career Assessment & Simulator</span>
+          <div className="flex items-center gap-4 text-surface-400">
+            <button 
+              onClick={() => {
+                setActiveTab('media-test');
+                window.history.pushState(null, '', '/media-test');
+              }}
+              className="hover:text-brand-400 transition-colors cursor-pointer"
+            >
+              Device Diagnostic Suite (/media-test)
+            </button>
+            <span>•</span>
+            <span>Enterprise AI Career Assessment Engine</span>
+          </div>
         </div>
       </footer>
 

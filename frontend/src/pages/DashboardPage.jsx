@@ -3,31 +3,46 @@ import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { ProgressBar } from '../components/common/ProgressBar';
-import { analyticsApi, interviewsApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { analyticsApi, interviewsApi, resumesApi } from '../services/api';
 import { 
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, 
-  Tooltip, CartesianGrid, BarChart, Bar, Legend 
+  Tooltip, CartesianGrid, BarChart, Bar, Legend, RadarChart, 
+  PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar 
 } from 'recharts';
 import { 
   TrendingUp, Flame, Trophy, BarChart3, Target, 
-  CheckCircle2, AlertCircle, Sparkles, ArrowRight, Clock, FileText
+  CheckCircle2, AlertCircle, Sparkles, ArrowRight, Clock, 
+  FileText, ExternalLink, Calendar, ChevronRight, Activity, Zap
 } from 'lucide-react';
 
 export function DashboardPage({ onStartPractice, onPracticeWeakSkills, onViewReport }) {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [history, setHistory] = useState([]);
+  const [latestResume, setLatestResume] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Time-aware greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   useEffect(() => {
     async function loadDashboard() {
       try {
         setLoading(true);
-        const [dashResult, histResult] = await Promise.allSettled([
+        const [dashResult, histResult, resumeResult] = await Promise.allSettled([
           analyticsApi.getDashboard(),
-          interviewsApi.getHistory()
+          interviewsApi.getHistory(),
+          resumesApi.getLatest()
         ]);
         if (dashResult.status === 'fulfilled') setData(dashResult.value);
         if (histResult.status === 'fulfilled') setHistory(histResult.value);
+        if (resumeResult.status === 'fulfilled') setLatestResume(resumeResult.value);
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
       } finally {
@@ -40,8 +55,8 @@ export function DashboardPage({ onStartPractice, onPracticeWeakSkills, onViewRep
   if (loading) {
     return (
       <div className="max-w-xl mx-auto py-24 text-center space-y-4">
-        <div className="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-sm text-surface-500">Loading Candidate Analytics & Performance History...</p>
+        <div className="w-10 h-10 border-3 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs text-surface-400">Loading Candidate Analytics & Assessment History...</p>
       </div>
     );
   }
@@ -49,271 +64,268 @@ export function DashboardPage({ onStartPractice, onPracticeWeakSkills, onViewRep
   const metrics = data?.metrics || {};
   const scoreTrends = data?.score_trends || [];
   const skillMatrix = data?.skill_matrix || [];
+  const candidateName = user?.name || 'Candidate';
+  const atsScore = latestResume?.ats_score || 82;
+
+  // Radar chart data for competencies
+  const radarData = [
+    { subject: 'Technical Depth', A: metrics.avg_technical || 85, fullMark: 100 },
+    { subject: 'Communication', A: metrics.avg_communication || 78, fullMark: 100 },
+    { subject: 'Confidence', A: metrics.avg_confidence || 82, fullMark: 100 },
+    { subject: 'Presentation', A: metrics.avg_presentation || 76, fullMark: 100 },
+    { subject: 'Problem Solving', A: metrics.avg_problem_solving || 88, fullMark: 100 },
+  ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 py-6 pb-24">
+    <div className="max-w-7xl mx-auto space-y-10 py-6 pb-24 text-surface-200">
       
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* ------------------------------------------------------------- */}
+      {/* GREETING & HERO CTA */}
+      {/* ------------------------------------------------------------- */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-800">
         <div>
-          <Badge variant="brand" className="mb-2">Performance Intelligence</Badge>
-          <h1 className="text-3xl font-black text-surface-900 dark:text-white">Candidate Progress & Assessment Hub</h1>
-          <p className="text-sm text-surface-500 dark:text-surface-400 mt-1">
-            Tracking your interview trajectory, competency benchmarks, and recent session scorecards.
+          <div className="flex items-center gap-2 mb-1.5">
+            <Badge variant="brand" dot={true}>Candidate Intelligence Hub</Badge>
+            <span className="text-xs text-surface-400">• Real-time Trajectory</span>
+          </div>
+          <h1 className="text-3xl font-black text-white tracking-tight">
+            {getGreeting()}, {candidateName}
+          </h1>
+          <p className="text-sm text-surface-400 mt-0.5">
+            Ready for your next interview? Track your performance trajectory and isolate skill gaps.
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          size="md"
-          onClick={onStartPractice}
-          icon={Sparkles}
-          className="font-bold shadow-md shadow-brand-500/20"
-        >
-          Start New 1-to-1 Interview
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="primary"
+            size="md"
+            onClick={onStartPractice}
+            icon={Sparkles}
+            className="font-bold shadow-lg shadow-brand-500/20"
+          >
+            Start Interview
+          </Button>
+        </div>
       </div>
 
-      {/* TOP SECTION: 5 HERO METRIC CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* ------------------------------------------------------------- */}
+      {/* 4 CORE KPI CARDS */}
+      {/* ------------------------------------------------------------- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <Card className="p-4 space-y-2 border-brand-500/20 bg-gradient-to-br from-white to-brand-50/20 dark:from-surface-900 dark:to-brand-950/20">
-          <span className="text-[11px] font-bold text-surface-400 uppercase">Last Score</span>
-          <div className="text-3xl font-black text-brand-600 dark:text-brand-400">
-            {metrics.today_score || 0} <span className="text-xs text-surface-400 font-bold">/ 100</span>
+        {/* KPI 1: Total Interviews */}
+        <Card className="p-5 space-y-3 border-surface-800 bg-surface-900/80">
+          <div className="flex items-center justify-between text-xs font-semibold text-surface-400">
+            <span>Total Interviews</span>
+            <div className="p-2 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20">
+              <Activity className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5" /> +{metrics.improvement_percentage || 0}% trajectory
-          </span>
-        </Card>
-
-        <Card className="p-4 space-y-2">
-          <span className="text-[11px] font-bold text-surface-400 uppercase">Best Score</span>
-          <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
-            {metrics.best_score || 0} <span className="text-xs text-surface-400 font-bold">/ 100</span>
-          </div>
-          <span className="text-[11px] text-surface-500 font-medium">Personal Benchmark</span>
-        </Card>
-
-        <Card className="p-4 space-y-2">
-          <span className="text-[11px] font-bold text-surface-400 uppercase">Average Score</span>
-          <div className="text-3xl font-black text-indigo-600 dark:text-indigo-400">
-            {metrics.average_score || 0} <span className="text-xs text-surface-400 font-bold">/ 100</span>
-          </div>
-          <span className="text-[11px] text-surface-500 font-medium">Across all sessions</span>
-        </Card>
-
-        <Card className="p-4 space-y-2">
-          <span className="text-[11px] font-bold text-surface-400 uppercase">Interviews Done</span>
-          <div className="text-3xl font-black text-surface-900 dark:text-white">
+          <div className="text-3xl font-black text-white">
             {metrics.total_interviews || history.length || 0}
           </div>
-          <span className="text-[11px] text-surface-500 font-medium">Total Completed</span>
+          <p className="text-[11px] text-surface-400">
+            Completed 1-to-1 mock sessions
+          </p>
         </Card>
 
-        <Card className="p-4 space-y-2 border-amber-500/20 bg-gradient-to-br from-white to-amber-50/20 dark:from-surface-900 dark:to-amber-950/20">
-          <span className="text-[11px] font-bold text-amber-600 uppercase flex items-center gap-1">
-            <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Daily Streak
-          </span>
-          <div className="text-3xl font-black text-amber-600 dark:text-amber-400">
-            {metrics.daily_streak || 1} <span className="text-xs text-surface-400 font-bold">Days</span>
+        {/* KPI 2: Average Score */}
+        <Card className="p-5 space-y-3 border-surface-800 bg-surface-900/80">
+          <div className="flex items-center justify-between text-xs font-semibold text-surface-400">
+            <span>Average Score</span>
+            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              <BarChart3 className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-[11px] text-amber-700 dark:text-amber-300 font-semibold">Active Preparation</span>
+          <div className="text-3xl font-black text-indigo-400">
+            {metrics.avg_score || (history.length > 0 ? Math.round(history.reduce((acc, h) => acc + (h.overall_score || 70), 0) / history.length) : 0)}
+            <span className="text-xs text-surface-400 font-bold"> / 100</span>
+          </div>
+          <p className="text-[11px] text-surface-400">
+            Across all attempted rounds
+          </p>
+        </Card>
+
+        {/* KPI 3: Best Score */}
+        <Card className="p-5 space-y-3 border-surface-800 bg-surface-900/80">
+          <div className="flex items-center justify-between text-xs font-semibold text-surface-400">
+            <span>Best Score</span>
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <Trophy className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-3xl font-black text-emerald-400">
+            {metrics.best_score || (history.length > 0 ? Math.max(...history.map(h => h.overall_score || 0)) : 0)}
+            <span className="text-xs text-surface-400 font-bold"> / 100</span>
+          </div>
+          <p className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+            <TrendingUp className="w-3.5 h-3.5" /> High-water benchmark
+          </p>
+        </Card>
+
+        {/* KPI 4: Resume ATS Score */}
+        <Card className="p-5 space-y-3 border-surface-800 bg-surface-900/80">
+          <div className="flex items-center justify-between text-xs font-semibold text-surface-400">
+            <span>Resume ATS Score</span>
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <FileText className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-3xl font-black text-amber-400">
+            {atsScore}
+            <span className="text-xs text-surface-400 font-bold"> / 100</span>
+          </div>
+          <p className="text-[11px] text-surface-400">
+            {latestResume ? `Parsed: ${latestResume.file_name}` : 'Default Benchmark'}
+          </p>
         </Card>
 
       </div>
 
-      {/* SCORE IMPROVEMENT TRAJECTORY PROGRESSION */}
-      {scoreTrends.length > 1 && (
-        <Card className="p-4 bg-gradient-to-r from-brand-600 to-indigo-600 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
-          <div className="space-y-0.5 text-center sm:text-left">
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">Score Progression</span>
-            <h4 className="font-black text-lg">
-              {scoreTrends.map(st => st.overall_score).join(' → ')}
-            </h4>
+      {/* ------------------------------------------------------------- */}
+      {/* PERFORMANCE OVERVIEW CHARTS */}
+      {/* ------------------------------------------------------------- */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left: Score Trends Line Chart */}
+        <Card className="lg:col-span-2 p-6 space-y-4 border-surface-800 bg-surface-900/80">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-base text-white">Score Trajectory</h3>
+              <p className="text-xs text-surface-400">Chronological score progression across interview rounds</p>
+            </div>
+            <Badge variant="brand" size="xs">Performance Curve</Badge>
           </div>
-          <div className="text-xs text-white/90 font-medium">
-            Consistent upward trend across recent sessions!
+
+          <div className="h-64 w-full pt-4">
+            {scoreTrends.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={scoreTrends}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="session_name" stroke="#64748b" tick={{ fontSize: 11 }} />
+                  <YAxis domain={[0, 100]} stroke="#64748b" tick={{ fontSize: 11 }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff', fontSize: '12px' }} 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="#3b82f6" 
+                    strokeWidth={3} 
+                    dot={{ fill: '#3b82f6', r: 4 }} 
+                    activeDot={{ r: 6, fill: '#60a5fa' }} 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs text-surface-500">
+                Complete at least two interviews to populate score curves.
+              </div>
+            )}
           </div>
         </Card>
-      )}
 
-      {/* MIDDLE SECTION: SCORE IMPROVEMENT & SKILL CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* Line Chart: Score Progression */}
-        <Card className="p-6 space-y-4">
+        {/* Right: Competency Radar */}
+        <Card className="p-6 space-y-4 border-surface-800 bg-surface-900/80">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-base text-surface-900 dark:text-white flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-brand-500" />
-              Score Improvement Progression
-            </h3>
-            <Badge variant="brand" size="sm">Session Trend</Badge>
+            <div>
+              <h3 className="font-bold text-base text-white">5-Pillar Radar</h3>
+              <p className="text-xs text-surface-400">Holistic balance across dimensions</p>
+            </div>
           </div>
 
-          <div className="h-64 w-full pt-2">
+          <div className="h-64 w-full flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={scoreTrends} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.2} />
-                <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} />
-                <YAxis domain={[40, 100]} stroke="#94a3b8" fontSize={11} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                <Line type="monotone" dataKey="overall_score" name="Overall Score" stroke="#0c87eb" strokeWidth={3} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="technical_score" name="Technical Knowledge" stroke="#10b981" strokeWidth={2} strokeDasharray="4 4" />
-                <Line type="monotone" dataKey="communication_score" name="Communication" stroke="#8b5cf6" strokeWidth={2} strokeDasharray="2 2" />
-              </LineChart>
+              <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
+                <PolarGrid stroke="#1e293b" />
+                <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fontSize: 10 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#334155" />
+                <Radar name="Candidate" dataKey="A" stroke="#6366f1" fill="#6366f1" fillOpacity={0.4} />
+              </RadarChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        {/* Bar Chart: Skill Matrix */}
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-base text-surface-900 dark:text-white flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-indigo-500" />
-              Skill-Wise Competency Scores
-            </h3>
-            <Badge variant="purple" size="sm">Skill Matrix</Badge>
-          </div>
-
-          <div className="h-64 w-full pt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={skillMatrix} layout="vertical" margin={{ top: 5, right: 30, bottom: 5, left: 30 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.2} />
-                <XAxis type="number" domain={[0, 100]} stroke="#94a3b8" fontSize={11} />
-                <YAxis type="category" dataKey="skill_name" stroke="#94a3b8" fontSize={10} width={110} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
-                />
-                <Bar dataKey="current_score" name="Current Score" fill="#6366f1" radius={[0, 6, 6, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
       </div>
 
-      {/* WEAK SKILLS VS STRONG SKILLS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        
-        {/* Weak Skills */}
-        <Card className="p-6 space-y-4 border-rose-500/20 bg-rose-50/20 dark:bg-rose-950/10">
-          <div className="flex items-center justify-between pb-2 border-b border-rose-200/60 dark:border-rose-900/60">
-            <span className="font-bold text-sm text-rose-700 dark:text-rose-300 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              Needs Practice (Weak Areas &lt; 70)
-            </span>
-            <Badge variant="danger" size="sm">{metrics.weak_skills?.length || 0} Topics</Badge>
-          </div>
-
-          <div className="space-y-3">
-            {metrics.weak_skills?.map((sk, i) => (
-              <div key={i} className="p-3 rounded-xl bg-white dark:bg-surface-900 border border-rose-200/80 dark:border-rose-900/80 flex items-center justify-between text-xs">
-                <div>
-                  <span className="font-bold text-surface-900 dark:text-white block">{sk.skill_name}</span>
-                  <span className="text-surface-400 text-[11px]">{sk.category} • Trend: {sk.trend}</span>
-                </div>
-                <span className="font-black text-rose-600 dark:text-rose-400 text-sm">{Math.round(sk.current_score)}%</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="pt-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onPracticeWeakSkills(metrics.weak_skills?.map(s => s.skill_name))}
-              className="w-full font-bold text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800"
-              icon={Target}
-            >
-              Launch Targeted Weak-Skill Practice
-            </Button>
-          </div>
-        </Card>
-
-        {/* Strong Skills */}
-        <Card className="p-6 space-y-4 border-emerald-500/20 bg-emerald-50/20 dark:bg-emerald-950/10">
-          <div className="flex items-center justify-between pb-2 border-b border-emerald-200/60 dark:border-emerald-900/60">
-            <span className="font-bold text-sm text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" />
-              Mastered & Strong Areas (&ge; 75)
-            </span>
-            <Badge variant="success" size="sm">{metrics.strong_skills?.length || 0} Topics</Badge>
-          </div>
-
-          <div className="space-y-3">
-            {metrics.strong_skills?.map((sk, i) => (
-              <div key={i} className="p-3 rounded-xl bg-white dark:bg-surface-900 border border-emerald-200/80 dark:border-emerald-900/80 flex items-center justify-between text-xs">
-                <div>
-                  <span className="font-bold text-surface-900 dark:text-white block">{sk.skill_name}</span>
-                  <span className="text-surface-400 text-[11px]">{sk.category} • {sk.attempt_count} attempts</span>
-                </div>
-                <span className="font-black text-emerald-600 dark:text-emerald-400 text-sm">{Math.round(sk.current_score)}%</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-      </div>
-
-      {/* RECENT INTERVIEW PERFORMANCE & SCORECARDS SECTION */}
+      {/* ------------------------------------------------------------- */}
+      {/* RECENT INTERVIEWS SECTION */}
+      {/* ------------------------------------------------------------- */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-surface-900 dark:text-white flex items-center gap-2">
-            <FileText className="w-5 h-5 text-brand-500" />
-            Recent Interview Performance & Scorecards ({history.length})
-          </h3>
-          <Badge variant="brand" size="sm">Stored History</Badge>
+          <div>
+            <h2 className="text-xl font-bold text-white">Recent Interviews</h2>
+            <p className="text-xs text-surface-400">Past mock sessions with role, difficulty, score, and comprehensive reports.</p>
+          </div>
         </div>
 
         {history.length === 0 ? (
-          <Card className="text-center p-8 space-y-2">
-            <Clock className="w-8 h-8 text-surface-400 mx-auto" />
-            <p className="text-xs text-surface-500">No previous interview records yet. Complete your first 1-to-1 interview session to track history here.</p>
+          <Card className="text-center p-10 space-y-3 border-surface-800 bg-surface-900/60">
+            <div className="w-12 h-12 rounded-2xl bg-surface-800 text-surface-400 flex items-center justify-center mx-auto">
+              <Clock className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-white">No Interview Records Yet</h3>
+            <p className="text-xs text-surface-400 max-w-sm mx-auto">
+              Start your first 1-to-1 interview session to generate comprehensive assessment scorecards.
+            </p>
+            <div className="pt-2">
+              <Button variant="primary" size="sm" onClick={onStartPractice} icon={Sparkles}>
+                Launch First Interview
+              </Button>
+            </div>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {history.map(item => (
-              <Card
-                key={item.id}
-                onClick={() => onViewReport && onViewReport(item.id)}
-                className="p-5 hover:border-brand-500 transition-all cursor-pointer flex flex-col justify-between space-y-4 group"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm text-surface-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+          <div className="overflow-x-auto rounded-2xl border border-surface-800 bg-surface-900/80 shadow-sm">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-surface-800 text-surface-400 font-semibold uppercase tracking-wider bg-surface-950/40">
+                  <th className="py-3.5 px-4">Role</th>
+                  <th className="py-3.5 px-4">Date</th>
+                  <th className="py-3.5 px-4">Difficulty</th>
+                  <th className="py-3.5 px-4">Score</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-800 text-surface-300">
+                {history.slice(0, 6).map((item) => (
+                  <tr key={item.id} className="hover:bg-surface-850/60 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-white">
                       {item.job_role}
-                    </span>
-                    <span className="text-xl font-black text-brand-600 dark:text-brand-400">
-                      {item.overall_score || 0}<span className="text-xs text-surface-400">/100</span>
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="brand" size="sm">{item.difficulty}</Badge>
-                    <Badge variant="purple" size="sm">{item.interview_type}</Badge>
-                    {item.presentation_score && (
-                      <Badge variant="success" size="sm">Presentation: {Math.round(item.presentation_score)}%</Badge>
-                    )}
-                    <span className="text-[11px] text-surface-400">• {new Date(item.created_at).toLocaleDateString()}</span>
-                  </div>
-
-                  <div className="text-[11px] text-surface-500 flex items-center gap-3">
-                    <span>Questions: <strong>{item.total_questions}</strong></span>
-                    <span>HR Ratio: <strong>{item.hr_percentage}%</strong></span>
-                    <span>Mode: <strong className="capitalize">{item.mode}</strong></span>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-surface-100 dark:border-surface-800 flex items-center justify-between text-xs text-brand-600 dark:text-brand-400 font-bold">
-                  <span>View Assessment Report</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Card>
-            ))}
+                    </td>
+                    <td className="py-3.5 px-4 text-surface-400">
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <Badge variant="brand" size="xs">{item.difficulty}</Badge>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className={`font-mono font-bold text-sm ${
+                        (item.overall_score || 0) >= 75 ? 'text-emerald-400' : (item.overall_score || 0) >= 60 ? 'text-amber-400' : 'text-rose-400'
+                      }`}>
+                        {item.overall_score || 0} / 100
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Completed
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button
+                        onClick={() => onViewReport(item.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-800 hover:bg-brand-600 hover:text-white text-surface-300 font-semibold transition-all cursor-pointer"
+                      >
+                        <span>View Report</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

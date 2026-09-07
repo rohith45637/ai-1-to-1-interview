@@ -1,4 +1,4 @@
-﻿/** @type {import('tailwindcss').Config} */
+/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
@@ -9,17 +9,21 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          200: '#bae0fd',
-          300: '#7cc5fb',
-          400: '#36a6f6',
-          500: '#0c87eb',
-          600: '#026bc9',
-          700: '#0255a2',
-          800: '#064885',
-          900: '#0b3d6f',
-          950: '#07274a',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+          950: '#0f172a',
+        },
+        accent: {
+          500: '#6366f1',
+          600: '#4f46e5',
         },
         surface: {
           50: '#f8fafc',
@@ -31,8 +35,10 @@ export default {
           600: '#475569',
           700: '#334155',
           800: '#1e293b',
+          850: '#162032',
           900: '#0f172a',
-          950: '#020617',
+          925: '#0b1120',
+          950: '#060913',
         }
       },
       fontFamily: {
@@ -40,13 +46,23 @@ export default {
       },
       animation: {
         'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'wave': 'wave 1.5s ease-in-out infinite',
+        'wave': 'wave 1.2s ease-in-out infinite',
+        'shimmer': 'shimmer 2.5s linear infinite',
       },
       keyframes: {
         wave: {
-          '0%, 100%': { transform: 'scaleY(0.4)' },
+          '0%, 100%': { transform: 'scaleY(0.3)' },
           '50%': { transform: 'scaleY(1.0)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
         }
+      },
+      boxShadow: {
+        'glow-brand': '0 0 25px -5px rgba(59, 130, 246, 0.25)',
+        'glow-accent': '0 0 25px -5px rgba(99, 102, 241, 0.25)',
+        'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.25)',
       }
     },
   },

@@ -22,10 +22,13 @@ app = FastAPI(
     description="AI-Powered 1-to-1 Interview Preparation and Candidate Assessment Platform"
 )
 
+cors_origins = settings.cors_origins_list
+is_wildcard = "*" in cors_origins or not cors_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=["*"] if is_wildcard else cors_origins,
+    allow_credentials=not is_wildcard,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -55,6 +58,7 @@ def health_check():
         "status": "healthy",
         "project": settings.PROJECT_NAME,
         "version": settings.PROJECT_VERSION,
+        "environment": settings.ENVIRONMENT,
         "gemini_configured": bool(settings.GEMINI_API_KEY)
     }
 

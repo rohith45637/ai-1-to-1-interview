@@ -4,7 +4,7 @@ import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { skillsApi } from '../services/api';
 import { 
-  Target, AlertCircle, CheckCircle2, ArrowRight
+  Target, AlertCircle, CheckCircle2, ArrowRight, Sparkles, Zap
 } from 'lucide-react';
 
 export function WeakSkillsPracticePage({ onLaunchWeakPractice }) {
@@ -37,29 +37,32 @@ export function WeakSkillsPracticePage({ onLaunchWeakPractice }) {
   if (loading) {
     return (
       <div className="max-w-xl mx-auto py-24 text-center space-y-4">
-        <div className="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-sm text-surface-500">Isolating historical weak concepts...</p>
+        <div className="w-10 h-10 border-3 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs text-surface-400">Isolating historical weak concepts...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-6 pb-24">
+    <div className="max-w-4xl mx-auto space-y-8 py-6 pb-24 text-surface-200">
       
-      <div>
-        <Badge variant="warning" className="mb-2">Targeted Mastery</Badge>
-        <h1 className="text-3xl font-black text-surface-900 dark:text-white">Practice My Weak Areas</h1>
-        <p className="text-sm text-surface-500 dark:text-surface-400 mt-1">
-          The adaptive AI isolates specific concepts where your past answer depth or correctness scored under 72%, generating hyper-focused drill questions.
+      {/* Header */}
+      <div className="pb-4 border-b border-surface-800">
+        <div className="flex items-center gap-2 mb-1.5">
+          <Badge variant="warning" dot={true}>Targeted Mastery Drills</Badge>
+        </div>
+        <h1 className="text-3xl font-black text-white tracking-tight">Practice My Weak Areas</h1>
+        <p className="text-sm text-surface-400 mt-0.5">
+          The adaptive AI isolates concepts where your past answer depth or correctness scored under 72%, generating hyper-focused drill questions.
         </p>
       </div>
 
       {weakSkills.length === 0 ? (
-        <Card className="text-center p-10 space-y-4">
-          <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
-          <h3 className="text-lg font-bold text-surface-900 dark:text-white">No Critical Weak Areas Detected!</h3>
-          <p className="text-xs text-surface-500 max-w-md mx-auto">
-            You are scoring well across your tested technical and behavioral skills. Take another mock interview to discover advanced growth areas.
+        <Card className="text-center p-12 space-y-4 border-surface-800 bg-surface-900/80">
+          <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
+          <h3 className="text-lg font-bold text-white">No Critical Weak Areas Detected!</h3>
+          <p className="text-xs text-surface-400 max-w-md mx-auto">
+            You are scoring solidly across tested technical and behavioral skills. Take another mock interview round to uncover advanced nuances.
           </p>
         </Card>
       ) : (
@@ -72,17 +75,23 @@ export function WeakSkillsPracticePage({ onLaunchWeakPractice }) {
                 <div
                   key={sk.skill_name}
                   onClick={() => toggleSkill(sk.skill_name)}
-                  className={'p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ' + (isSelected ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-950/40' : 'border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 opacity-60')}
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                    isSelected 
+                      ? 'border-brand-500 bg-brand-500/10' 
+                      : 'border-surface-800 bg-surface-900/80 opacity-60'
+                  }`}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-surface-900 dark:text-white">{sk.skill_name}</span>
-                      <Badge variant="danger" size="sm">{Math.round(sk.current_score)}%</Badge>
+                      <span className="font-bold text-sm text-white">{sk.skill_name}</span>
+                      <Badge variant="danger" size="xs">{Math.round(sk.current_score)}%</Badge>
                     </div>
                     <p className="text-[11px] text-surface-400">Category: {sk.category} • Trend: {sk.trend}</p>
                   </div>
 
-                  <div className={'w-6 h-6 rounded-full flex items-center justify-center border ' + (isSelected ? 'bg-brand-600 border-brand-600 text-white' : 'border-surface-400')}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center border ${
+                    isSelected ? 'bg-brand-600 border-brand-600 text-white' : 'border-surface-600'
+                  }`}>
                     {isSelected && <CheckCircle2 className="w-4 h-4" />}
                   </div>
                 </div>
@@ -90,23 +99,23 @@ export function WeakSkillsPracticePage({ onLaunchWeakPractice }) {
             })}
           </div>
 
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-brand-600/20">
-            <div className="space-y-0.5 text-center sm:text-left">
-              <h4 className="font-black text-lg">Ready to Drill {selectedSkills.length} Selected Topics</h4>
-              <p className="text-xs text-white/80">Adaptive session will test different questions covering the same core nuances.</p>
+          <Card className="p-6 border-brand-500/30 bg-gradient-to-r from-brand-600/20 via-indigo-600/20 to-purple-600/20 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+            <div className="space-y-1 text-center sm:text-left">
+              <h4 className="font-bold text-base text-white">Ready to Drill {selectedSkills.length} Selected Topics</h4>
+              <p className="text-xs text-surface-300">Adaptive session will test different questions covering the same core nuances.</p>
             </div>
 
             <Button
               variant="primary"
-              size="lg"
+              size="md"
               disabled={selectedSkills.length === 0}
               onClick={() => onLaunchWeakPractice(selectedSkills)}
-              className="bg-white hover:bg-white/90 text-brand-700 font-black text-xs shadow-md"
-              icon={ArrowRight}
+              className="font-bold shrink-0"
+              icon={Zap}
             >
-              Start Focused Weak Drill
+              Start Weak Drill Session
             </Button>
-          </div>
+          </Card>
 
         </div>
       )}
