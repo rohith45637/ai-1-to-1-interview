@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Camera, CameraOff, Mic, MicOff, User, AlertCircle, RefreshCw, Eye, Sparkles } from 'lucide-react';
 import { usePresentationAnalysis } from '../../hooks/usePresentationAnalysis';
 
-export function UserWebcam({ 
-  isListening = false, 
-  candidateName = 'Candidate', 
-  onToggleMic, 
+export function UserWebcam({
+  isListening = false,
+  candidateName = 'Candidate',
+  onToggleMic,
   isMicMuted = false,
   micPermissionDenied = false,
   onUpdatePresentationMetrics
@@ -16,9 +16,22 @@ export function UserWebcam({
   const [permissionState, setPermissionState] = useState('requesting'); // 'requesting', 'granted', 'denied'
   const [errorMessage, setErrorMessage] = useState('');
 
+  // The <video> element only mounts once permissionState === 'granted' &&
+  // cameraActive are both true. That happens AFTER startCamera() already
+  // tried to set videoRef.current.srcObject (when the ref was still null,
+  // since the element wasn't in the DOM yet). This effect re-attaches the
+  // stream to the video element once it actually exists in the DOM.
+  useEffect(() => {
+    if (permissionState === 'granted' && cameraActive && videoRef.current && streamRef.current) {
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+      }
+    }
+  }, [permissionState, cameraActive]);
+
   // Presentation & Body Language Analysis Hook
   const { activeWarning, presentationMetrics } = usePresentationAnalysis(
-    videoRef, 
+    videoRef,
     cameraActive && permissionState === 'granted'
   );
 
@@ -98,7 +111,7 @@ export function UserWebcam({
 
   return (
     <div className="relative w-full h-full min-h-[300px] sm:min-h-[340px] rounded-3xl overflow-hidden bg-gradient-to-br from-surface-900 via-surface-925 to-surface-950 border border-surface-800 shadow-2xl flex flex-col justify-between p-5 group">
-      
+
       {/* Top Bar: Candidate Tag & Status Controls */}
       <div className="relative z-20 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2.5">
@@ -134,11 +147,10 @@ export function UserWebcam({
           <button
             onClick={toggleCamera}
             title={cameraActive ? 'Turn off camera' : 'Turn on camera'}
-            className={`p-2 rounded-xl border backdrop-blur-md transition-all cursor-pointer ${
-              cameraActive 
-                ? 'bg-surface-800/80 border-surface-700 text-white hover:bg-surface-700' 
+            className={`p-2 rounded-xl border backdrop-blur-md transition-all cursor-pointer ${cameraActive
+                ? 'bg-surface-800/80 border-surface-700 text-white hover:bg-surface-700'
                 : 'bg-rose-950/80 border-rose-800 text-rose-300'
-            }`}
+              }`}
           >
             {cameraActive ? <Camera className="w-3.5 h-3.5" /> : <CameraOff className="w-3.5 h-3.5" />}
           </button>
@@ -147,11 +159,10 @@ export function UserWebcam({
             <button
               onClick={onToggleMic}
               title={isMicMuted ? 'Unmute microphone' : 'Mute microphone'}
-              className={`p-2 rounded-xl border backdrop-blur-md transition-all cursor-pointer ${
-                !isMicMuted && !micPermissionDenied
-                  ? 'bg-surface-800/80 border-surface-700 text-white hover:bg-surface-700' 
+              className={`p-2 rounded-xl border backdrop-blur-md transition-all cursor-pointer ${!isMicMuted && !micPermissionDenied
+                  ? 'bg-surface-800/80 border-surface-700 text-white hover:bg-surface-700'
                   : 'bg-rose-950/80 border-rose-800 text-rose-300'
-              }`}
+                }`}
             >
               {!isMicMuted && !micPermissionDenied ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
             </button>
@@ -184,7 +195,7 @@ export function UserWebcam({
             <div className="w-16 h-16 rounded-2xl bg-surface-800/80 border border-surface-700 flex items-center justify-center text-surface-400">
               <User className="w-8 h-8" />
             </div>
-            
+
             <div className="space-y-1 max-w-xs">
               <p className="text-xs font-bold text-white">
                 {permissionState === 'denied' ? 'Camera unavailable' : 'Camera is Turned Off'}
