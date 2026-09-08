@@ -55,7 +55,14 @@ export function AtsAnalyzerPage({ resumeData, onStartRoleInterview }) {
 
   const breakdown = resume.ats_breakdown || {};
   const roleMatches = resume.role_matches || [];
-  const score = resume.ats_score || 78;
+  const getOverallScore = (val, defaultVal = 78) => {
+    if (typeof val === 'number' && !isNaN(val)) return val;
+    if (val && typeof val.score === 'number' && !isNaN(val.score)) return val.score;
+    if (typeof val === 'string' && !isNaN(Number(val))) return Number(val);
+    return defaultVal;
+  };
+
+  const score = getOverallScore(resume.ats_score, 78);
 
   const getScoreBadge = (val) => {
     if (val >= 80) return <Badge variant="success" dot={true}>ATS Optimized</Badge>;
@@ -63,13 +70,27 @@ export function AtsAnalyzerPage({ resumeData, onStartRoleInterview }) {
     return <Badge variant="danger" dot={true}>Needs Optimization</Badge>;
   };
 
+  const getSectionScore = (item, defaultScore = 0) => {
+    if (typeof item === 'number' && !isNaN(item)) return item;
+    if (item && typeof item.score === 'number' && !isNaN(item.score)) return item.score;
+    if (typeof item === 'string' && !isNaN(Number(item))) return Number(item);
+    return defaultScore;
+  };
+
+  const getSectionMax = (item, defaultMax = 100) => {
+    if (typeof item === 'number' && !isNaN(item)) return item;
+    if (item && typeof item.max_score === 'number' && !isNaN(item.max_score)) return item.max_score;
+    if (item && typeof item.max === 'number' && !isNaN(item.max)) return item.max;
+    return defaultMax;
+  };
+
   const sectionCards = [
-    { title: 'ATS Layout & Structure', score: breakdown.structure_score || 18, max: 20 },
-    { title: 'Keyword & Skill Density', score: breakdown.skills_score || 22, max: 25 },
-    { title: 'Experience & Impact', score: breakdown.experience_score || 16, max: 20 },
-    { title: 'Format & Parseability', score: breakdown.formatting_score || 14, max: 15 },
-    { title: 'Strong Action Verbs', score: breakdown.action_verbs_score || 8, max: 10 },
-    { title: 'Quantifiable Metrics', score: breakdown.quantifiable_metrics_score || 7, max: 10 },
+    { title: 'ATS Layout & Structure', score: getSectionScore(breakdown.structure_score, 18), max: getSectionMax(breakdown.structure_score, 20) },
+    { title: 'Keyword & Skill Density', score: getSectionScore(breakdown.skills_score, 22), max: getSectionMax(breakdown.skills_score, 25) },
+    { title: 'Experience & Impact', score: getSectionScore(breakdown.experience_score, 16), max: getSectionMax(breakdown.experience_score, 20) },
+    { title: 'Format & Parseability', score: getSectionScore(breakdown.formatting_score, 14), max: getSectionMax(breakdown.formatting_score, 15) },
+    { title: 'Strong Action Verbs', score: getSectionScore(breakdown.action_verbs_score, 8), max: getSectionMax(breakdown.action_verbs_score, 10) },
+    { title: 'Quantifiable Metrics', score: getSectionScore(breakdown.quantifiable_metrics_score, 7), max: getSectionMax(breakdown.quantifiable_metrics_score, 10) },
   ];
 
   return (

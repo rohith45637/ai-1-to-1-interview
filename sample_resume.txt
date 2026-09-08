@@ -1,0 +1,26 @@
+Alex Mercer
+alex.mercer@example.com | (555) 987-6543 | San Francisco, CA
+
+PROFESSIONAL SUMMARY
+Senior Full Stack Engineer with 4+ years of experience building high-performance web applications using React, Python FastAPI, PostgreSQL, and Docker. Proven track record of improving system latency by 35% and leading cross-functional teams.
+
+TECHNICAL SKILLS
+- Languages: Python, JavaScript, TypeScript, SQL, HTML, CSS
+- Frameworks & Libraries: React, FastAPI, Node.js, Next.js, Django, Tailwind CSS
+- Databases: PostgreSQL, Redis, SQLite, MongoDB
+- Cloud & DevOps: Docker, AWS, CI/CD, Git, GitHub Actions, Linux
+
+WORK EXPERIENCE
+Full Stack Software Engineer | CloudScale Inc.
+2022 - Present
+- Architected and delivered resilient REST and GraphQL microservices in Python FastAPI, handling 15k RPM.
+- Built responsive user interfaces in React and TypeScript with real-time WebSocket state synchronization.
+- Optimized database indexing in PostgreSQL, reducing query latency by 40%.
+
+Frontend Developer | WebCraft Labs
+2020 - 2022
+- Developed modular UI component libraries with React, Tailwind CSS, and Vite.
+- Collaborated with product designers and backend engineers to implement accessible web applications.
+
+EDUCATION
+Bachelor of Science in Computer Science | State University (2020)

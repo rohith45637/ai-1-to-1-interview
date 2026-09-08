@@ -48,6 +48,7 @@ export function InterviewConfigModal({
   const [durationMinutes, setDurationMinutes] = useState(15);
   const [totalQuestions, setTotalQuestions] = useState(5);
   const [mode, setMode] = useState('real');
+  const [isLaunching, setIsLaunching] = useState(false);
 
   // Real Device Check States
   const [deviceCheck, setDeviceCheck] = useState({
@@ -82,8 +83,30 @@ export function InterviewConfigModal({
         setInterviewType(initialType);
       }
       setCurrentStep(1);
+      setIsLaunching(false);
     }
   }, [isOpen, initialRole, initialType]);
+
+  // Window-level Enter key handler to advance steps or launch interview
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleGlobalKeyDown = (e) => {
+      // Ignore if Shift+Enter is pressed or user is inside a multiline textarea
+      if (e.shiftKey) return;
+      if (e.target && e.target.tagName === 'TEXTAREA') return;
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (currentStep === 1) {
+          handleGoToDeviceCheck();
+        } else if (currentStep === 2 && !isLaunching) {
+          handleLaunch();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isOpen, currentStep, selectedRole, interviewType, difficulty, hrPercentage, totalQuestions, durationMinutes, mode, initialResumeId, initialWeakSkills, deviceCheck, isLaunching]);
 
   // Perform Real Device Check when reaching Step 2
   const runDeviceCheck = async () => {
@@ -141,6 +164,8 @@ export function InterviewConfigModal({
   };
 
   const handleLaunch = () => {
+    if (isLaunching) return;
+    setIsLaunching(true);
     onLaunchInterview({
       job_role: selectedRole,
       interview_type: interviewType,
@@ -176,6 +201,12 @@ export function InterviewConfigModal({
           onSubmit={(e) => {
             e.preventDefault();
             handleGoToDeviceCheck();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleGoToDeviceCheck();
+            }
           }}
           className="space-y-6 text-xs text-surface-600 dark:text-surface-300"
         >
@@ -332,6 +363,12 @@ export function InterviewConfigModal({
             e.preventDefault();
             handleLaunch();
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleLaunch();
+            }
+          }}
           className="space-y-6 text-xs text-surface-600 dark:text-surface-300"
         >
           <div className="p-4 rounded-2xl bg-surface-50 dark:bg-surface-950 border border-surface-200 dark:border-surface-800 space-y-4">
@@ -464,6 +501,8 @@ export function InterviewConfigModal({
               variant="primary" 
               size="md" 
               icon={Sparkles}
+              loading={isLaunching}
+              disabled={isLaunching}
               className="font-bold"
             >
               Enter Interview Room
