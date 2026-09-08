@@ -104,7 +104,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen bg-surface-50 text-surface-900 dark:bg-surface-950 dark:text-surface-100 flex flex-col font-sans selection:bg-brand-500 selection:text-white transition-colors duration-200">
       
       {/* Top Navbar */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -185,16 +185,16 @@ function AppContent() {
       />
 
       {/* Modern Footer */}
-      <footer className="border-t border-surface-800/80 bg-surface-950/60 backdrop-blur-md py-6 text-center text-xs text-surface-400">
+      <footer className="border-t border-surface-200 dark:border-surface-800/80 bg-white/70 dark:bg-surface-950/60 backdrop-blur-md py-6 text-center text-xs text-surface-500 dark:text-surface-400">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>&copy; {new Date().getFullYear()} <strong>1 to 1 Interview</strong> • Powered by Google DeepMind Gemini</span>
-          <div className="flex items-center gap-4 text-surface-400">
+          <div className="flex items-center gap-4 text-surface-500 dark:text-surface-400">
             <button 
               onClick={() => {
                 setActiveTab('media-test');
                 window.history.pushState(null, '', '/media-test');
               }}
-              className="hover:text-brand-400 transition-colors cursor-pointer"
+              className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors cursor-pointer"
             >
               Device Diagnostic Suite (/media-test)
             </button>

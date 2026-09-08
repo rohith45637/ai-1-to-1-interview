@@ -1,4 +1,4 @@
-﻿from sqlalchemy import Column, String, DateTime, JSON, Integer
+from sqlalchemy import Column, String, DateTime, JSON, Integer
 from datetime import datetime
 import uuid
 from app.database import Base
@@ -11,8 +11,8 @@ class User(Base):
     email = Column(String, nullable=False, default="candidate@example.com")
     target_role = Column(String, nullable=True, default="Full Stack Developer")
     experience_level = Column(String, nullable=True, default="Intermediate")
-    streak_count = Column(Integer, default=1)
-    last_active_date = Column(String, default=lambda: datetime.now().strftime('%Y-%m-%d'))
+    streak_count = Column(Integer, default=0)
+    last_active_date = Column(String, nullable=True, default=None)
     settings = Column(JSON, default=lambda: {
         "theme": "dark",
         "voice_enabled": True,

@@ -298,9 +298,10 @@ async def submit_answer(submission: AnswerSubmissionRequest, db: Session = Depen
                 hist = list(existing_skill.score_history or [])
                 hist.append({"date": datetime.now().strftime('%Y-%m-%d'), "score": s_score, "interview_id": interview.id})
                 existing_skill.score_history = hist
+                previous_score = existing_skill.current_score
                 existing_skill.current_score = round((existing_skill.current_score * 0.4) + (s_score * 0.6), 1)
                 existing_skill.attempt_count += 1
-                existing_skill.trend = "improving" if s_score >= existing_skill.current_score else "declining"
+                existing_skill.trend = "improving" if s_score >= previous_score else "declining"
                 existing_skill.weakness_level = "weak" if existing_skill.current_score < 70.0 else ("strong" if existing_skill.current_score >= 80.0 else "moderate")
                 existing_skill.updated_at = datetime.utcnow()
             else:
@@ -323,12 +324,18 @@ async def submit_answer(submission: AnswerSubmissionRequest, db: Session = Depen
         ).first()
 
         cat_scores = interview.category_scores or {}
+        tech_score = round(cat_scores.get("technical_knowledge", interview.overall_score), 1)
+        hr_score = round(cat_scores.get("hr_performance", interview.overall_score), 1)
+        comm_score = round(cat_scores.get("communication", cat_scores.get("communication_score", interview.overall_score)), 1)
+
         if daily_log:
-            daily_log.interview_count += 1
-            daily_log.average_score = round((daily_log.average_score + interview.overall_score) / 2.0, 1)
-            daily_log.technical_score = round(cat_scores.get("technical_knowledge", 75.0), 1)
-            daily_log.hr_score = round(cat_scores.get("hr_performance", 75.0), 1)
-            daily_log.communication_score = round(cat_scores.get("communication_score", 75.0), 1)
+            old_count = daily_log.interview_count
+            new_count = old_count + 1
+            daily_log.interview_count = new_count
+            daily_log.average_score = round(((daily_log.average_score * old_count) + interview.overall_score) / new_count, 1)
+            daily_log.technical_score = round(((daily_log.technical_score * old_count) + tech_score) / new_count, 1)
+            daily_log.hr_score = round(((daily_log.hr_score * old_count) + hr_score) / new_count, 1)
+            daily_log.communication_score = round(((daily_log.communication_score * old_count) + comm_score) / new_count, 1)
             current_weak = list(daily_log.weak_topics or [])
             current_weak.extend(interview.weak_areas or [])
             daily_log.weak_topics = list(set(current_weak))
@@ -338,16 +345,31 @@ async def submit_answer(submission: AnswerSubmissionRequest, db: Session = Depen
                 log_date=today_str,
                 interview_count=1,
                 average_score=interview.overall_score,
-                technical_score=round(cat_scores.get("technical_knowledge", 75.0), 1),
-                hr_score=round(cat_scores.get("hr_performance", 75.0), 1),
-                communication_score=round(cat_scores.get("communication_score", 75.0), 1),
+                technical_score=tech_score,
+                hr_score=hr_score,
+                communication_score=comm_score,
                 weak_topics=interview.weak_areas or []
             )
             db.add(daily_log)
 
         user = db.query(User).filter(User.id == interview.user_id).first()
         if user:
-            user.streak_count = (user.streak_count or 1) + 1
+            today_dt = datetime.now().date()
+            if not user.last_active_date:
+                user.streak_count = 1
+            else:
+                try:
+                    last_dt = datetime.strptime(user.last_active_date, '%Y-%m-%d').date()
+                    days_diff = (today_dt - last_dt).days
+                    if days_diff == 1:
+                        user.streak_count = (user.streak_count or 0) + 1
+                    elif days_diff == 0:
+                        if (user.streak_count or 0) == 0:
+                            user.streak_count = 1
+                    else: # days_diff > 1
+                        user.streak_count = 1
+                except Exception:
+                    user.streak_count = 1
             user.last_active_date = today_str
 
         db.commit()

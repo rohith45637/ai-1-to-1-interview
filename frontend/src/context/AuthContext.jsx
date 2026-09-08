@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
         email: 'candidate@example.com',
         target_role: 'Full Stack Developer',
         experience_level: 'Intermediate',
-        streak_count: 3,
+        streak_count: 0,
         settings: {
           theme: 'dark',
           voice_enabled: true,

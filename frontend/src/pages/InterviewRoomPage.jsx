@@ -444,16 +444,24 @@ export function InterviewRoomPage({
               rows={3}
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
-              placeholder="Type your detailed answer here if microphone is unavailable..."
-              className="w-full p-3 rounded-xl bg-surface-950 border border-surface-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (userAnswer.trim() && interviewState !== 'thinking') {
+                    submitCandidateAnswer();
+                  }
+                }
+              }}
+              placeholder="Type your detailed answer here (Press Enter to submit, Shift+Enter for new line)..."
+              className="w-full p-3 rounded-xl bg-surface-50 dark:bg-surface-950 border border-surface-300 dark:border-surface-700 text-xs text-surface-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           ) : (
-            <div className="p-3.5 rounded-xl bg-surface-950 border border-surface-800 text-xs min-h-[60px] flex items-center">
+            <div className="p-3.5 rounded-xl bg-surface-50 dark:bg-surface-950 border border-surface-200 dark:border-surface-800 text-xs min-h-[60px] flex items-center">
               {userAnswer ? (
-                <span className="text-white font-medium">{userAnswer}</span>
+                <span className="text-surface-900 dark:text-white font-medium">{userAnswer}</span>
               ) : (
                 <span className="text-surface-500 italic">
-                  {isListening ? 'Listening... Speak your answer aloud.' : 'Waiting for AI question to complete before listening...'}
+                  {isListening ? 'Listening... Speak your answer aloud or click Type Response.' : 'Waiting for AI question to complete before listening...'}
                 </span>
               )}
             </div>
@@ -463,8 +471,8 @@ export function InterviewRoomPage({
         {/* ------------------------------------------------------------- */}
         {/* INTERVIEW CONTROL BUTTONS BAR */}
         {/* ------------------------------------------------------------- */}
-        <div className="pt-3 border-t border-surface-800 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="pt-3 border-t border-surface-200 dark:border-surface-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -494,7 +502,7 @@ export function InterviewRoomPage({
             </Button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
               variant="primary"
               size="md"
@@ -502,7 +510,7 @@ export function InterviewRoomPage({
               disabled={!userAnswer.trim() || interviewState === 'thinking'}
               loading={interviewState === 'thinking'}
               icon={Send}
-              className="font-bold"
+              className="w-full sm:w-auto font-bold"
             >
               Submit Answer
             </Button>

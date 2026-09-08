@@ -34,7 +34,7 @@ export const resumesApi = {
   uploadResume: (formData) => {
     return apiClient.post('/api/resumes/upload', formData, {
       headers: {
-        'Content-Type': undefined,
+        'Content-Type': 'multipart/form-data',
       },
     });
   },

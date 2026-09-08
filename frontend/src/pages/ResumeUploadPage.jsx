@@ -38,25 +38,45 @@ export function ResumeUploadPage({ onStartInterviewWithResume, onNavigateToAts }
     }
   };
 
+  const validateAndSetFile = (selected) => {
+    if (!selected) return;
+    const allowedExtensions = ['pdf', 'docx', 'doc', 'txt'];
+    const ext = selected.name.split('.').pop().toLowerCase();
+    
+    if (!allowedExtensions.includes(ext)) {
+      setErrorMessage(`Unsupported format (.${ext}). Please select a PDF or DOCX file.`);
+      setFile(null);
+      return;
+    }
+
+    // 10MB file size limit
+    if (selected.size > 10 * 1024 * 1024) {
+      setErrorMessage('File size exceeds the 10MB limit. Please upload a smaller resume document.');
+      setFile(null);
+      return;
+    }
+
+    setFile(selected);
+    setErrorMessage('');
+  };
+
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     if (selected) {
-      setFile(selected);
-      setErrorMessage('');
+      validateAndSetFile(selected);
     }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
-      setErrorMessage('');
+      validateAndSetFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleUpload = async () => {
     if (!file) {
-      setErrorMessage('Please select a PDF or DOCX file to upload.');
+      setErrorMessage('Please select a valid PDF or DOCX file to upload.');
       return;
     }
 
@@ -78,7 +98,7 @@ export function ResumeUploadPage({ onStartInterviewWithResume, onNavigateToAts }
       setFile(null);
     } catch (err) {
       console.error('Resume upload failed:', err);
-      setErrorMessage(err.message || 'Failed to parse resume document.');
+      setErrorMessage(err.message || 'Failed to upload and parse resume document. Please check the file and try again.');
     } finally {
       setUploading(false);
       setUploadProgress(0);

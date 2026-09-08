@@ -1,9 +1,11 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
-/* Modern Dark-First Custom Utilities & Glassmorphism */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Modern Dark/Light Custom Utilities & Glassmorphism */
 :root {
-  color-scheme: dark;
+  color-scheme: light dark;
 }
 
 body {
@@ -12,6 +14,12 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+  color: #0f172a;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark body {
   background-color: #060913;
   color: #f1f5f9;
 }

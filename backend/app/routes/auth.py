@@ -17,8 +17,8 @@ def get_or_create_default_user(db: Session) -> User:
             email="candidate@example.com",
             target_role="Full Stack Developer",
             experience_level="Intermediate",
-            streak_count=3,
-            last_active_date=datetime.now().strftime('%Y-%m-%d'),
+            streak_count=0,
+            last_active_date=None,
             settings={
                 "theme": "dark",
                 "voice_enabled": True,
@@ -37,12 +37,18 @@ def get_or_create_default_user(db: Session) -> User:
 def get_profile(db: Session = Depends(get_db)):
     user = get_or_create_default_user(db)
     
-    # Check streak update
-    today_str = datetime.now().strftime('%Y-%m-%d')
-    if user.last_active_date != today_str:
-        user.last_active_date = today_str
-        db.commit()
-        db.refresh(user)
+    # Check streak freshness
+    if user.last_active_date:
+        try:
+            last_dt = datetime.strptime(user.last_active_date, '%Y-%m-%d').date()
+            today_dt = datetime.now().date()
+            days_diff = (today_dt - last_dt).days
+            if days_diff > 1 and (user.streak_count or 0) > 0:
+                user.streak_count = 0
+                db.commit()
+                db.refresh(user)
+        except Exception:
+            pass
         
     return user
 
@@ -86,5 +92,8 @@ def reset_user_data(db: Session = Depends(get_db)):
     db.query(SkillPerformance).filter(SkillPerformance.user_id == user.id).delete()
     db.query(DailyLog).filter(DailyLog.user_id == user.id).delete()
     
+    user.streak_count = 0
+    user.last_active_date = None
+
     db.commit()
     return {"status": "success", "message": "User interview and skill data has been reset."}

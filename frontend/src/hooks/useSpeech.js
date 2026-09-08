@@ -10,18 +10,25 @@ export function useSpeech() {
   const [micPermissionDenied, setMicPermissionDenied] = useState(false);
 
   const recognitionRef = useRef(null);
+  const shouldListenRef = useRef(false);
+  const isSpeakingRef = useRef(false);
+  const isMutedRef = useRef(false);
   const synthRef = useRef(null);
   const voicesRef = useRef([]);
   const silenceTimerRef = useRef(null);
-  const isSpeakingRef = useRef(false);
   const onSilenceCallbackRef = useRef(null);
+  const restartTimeoutRef = useRef(null);
 
-  // Keep isSpeakingRef in sync
+  // Keep refs in sync
   useEffect(() => {
     isSpeakingRef.current = isSpeaking;
   }, [isSpeaking]);
 
-  // Load and cache voices
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
+
+  // Load and cache TTS voices
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       synthRef.current = window.speechSynthesis;
@@ -38,18 +45,53 @@ export function useSpeech() {
     } else {
       setTtsSupported(false);
     }
+
+    const SpeechRecognition = typeof window !== 'undefined' 
+      ? (window.SpeechRecognition || window.webkitSpeechRecognition) 
+      : null;
+    if (!SpeechRecognition) {
+      setSttSupported(false);
+    }
   }, []);
 
-  // Initialize Speech Recognition
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+  // Cleanup helper for speech recognition instance
+  const cleanupRecognition = useCallback(() => {
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch (e) {}
+      recognitionRef.current = null;
+    }
+  }, []);
 
+  // Helper to create and start a fresh SpeechRecognition instance
+  const createAndStartRecognition = useCallback(() => {
+    if (typeof window === 'undefined') return;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
+    if (!SpeechRecognition) {
+      setSttSupported(false);
+      return;
+    }
+
+    if (isSpeakingRef.current || isMutedRef.current || !shouldListenRef.current) {
+      return;
+    }
+
+    cleanupRecognition();
+
+    try {
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'en-IN'; // Indian English
+      recognition.lang = 'en-IN';
 
       recognition.onstart = () => {
         setIsListening(true);
@@ -57,7 +99,6 @@ export function useSpeech() {
       };
 
       recognition.onresult = (event) => {
-        // If AI is currently speaking, disregard to prevent AI self-transcription
         if (isSpeakingRef.current) return;
 
         let currentTranscript = '';
@@ -69,15 +110,13 @@ export function useSpeech() {
         if (trimmed) {
           setTranscript(trimmed);
 
-          // Reset silence timer on every new speech event
           if (silenceTimerRef.current) {
             clearTimeout(silenceTimerRef.current);
           }
 
-          // Auto-submit silence detector: 3.5s of silence after candidate speaks >= 3 words
           if (trimmed.split(' ').length >= 3 && onSilenceCallbackRef.current) {
             silenceTimerRef.current = setTimeout(() => {
-              if (onSilenceCallbackRef.current) {
+              if (onSilenceCallbackRef.current && !isSpeakingRef.current) {
                 onSilenceCallbackRef.current(trimmed);
               }
             }, 3500);
@@ -86,14 +125,15 @@ export function useSpeech() {
       };
 
       recognition.onerror = (event) => {
-        console.warn('Speech recognition status/error:', event.error);
+        console.warn('Speech recognition event/error:', event.error);
         if (event.error === 'not-allowed' || event.error === 'permission-denied') {
           setMicPermissionDenied(true);
+          shouldListenRef.current = false;
           setIsListening(false);
         } else if (event.error === 'language-not-supported') {
           recognition.lang = 'en-US';
-        } else if (event.error === 'no-speech') {
-          // Graceful ignore; user is just thinking
+        } else if (event.error === 'no-speech' || event.error === 'network') {
+          // Non-fatal, handled gracefully
         } else {
           setIsListening(false);
         }
@@ -101,80 +141,71 @@ export function useSpeech() {
 
       recognition.onend = () => {
         setIsListening(false);
+        // If candidate should still be listening and AI is not talking, cleanly restart instance
+        if (shouldListenRef.current && !isSpeakingRef.current && !isMutedRef.current) {
+          restartTimeoutRef.current = setTimeout(() => {
+            if (shouldListenRef.current && !isSpeakingRef.current) {
+              createAndStartRecognition();
+            }
+          }, 200);
+        }
       };
 
       recognitionRef.current = recognition;
-    } else {
-      setSttSupported(false);
+      recognition.start();
+    } catch (err) {
+      console.warn('Speech recognition instantiation/start note:', err);
+      if (shouldListenRef.current && !isSpeakingRef.current) {
+        restartTimeoutRef.current = setTimeout(() => {
+          if (shouldListenRef.current && !isSpeakingRef.current) {
+            createAndStartRecognition();
+          }
+        }, 300);
+      }
     }
-
-    return () => {
-      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-      if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch (e) {}
-      }
-      if (synthRef.current) {
-        try { synthRef.current.cancel(); } catch (e) {}
-      }
-    };
-  }, []);
+  }, [cleanupRecognition]);
 
   // Start listening with optional auto-silence callback
   const startListening = useCallback((onSilenceAutoSubmit = null) => {
     if (onSilenceAutoSubmit) {
       onSilenceCallbackRef.current = onSilenceAutoSubmit;
     }
+    shouldListenRef.current = true;
 
-    if (!recognitionRef.current || isSpeakingRef.current) return;
-
-    try {
-      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-      recognitionRef.current.start();
-      setIsListening(true);
-      setMicPermissionDenied(false);
-    } catch (err) {
-      // If already started, ignore error
-      if (err.name !== 'InvalidStateError') {
-        console.warn('Speech recognition start note:', err);
-      }
-    }
-  }, []);
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    createAndStartRecognition();
+  }, [createAndStartRecognition]);
 
   // Stop listening cleanly
   const stopListening = useCallback(() => {
+    shouldListenRef.current = false;
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
     }
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (err) {}
-    }
+    cleanupRecognition();
     setIsListening(false);
-  }, []);
+  }, [cleanupRecognition]);
 
   // Speak function with Indian English voice prioritization & onEnd callback
   const speak = useCallback((text, onEndCallback = null) => {
-    if (!synthRef.current || isMuted || !text) {
+    if (!synthRef.current || isMutedRef.current || !text) {
       if (onEndCallback) onEndCallback();
       return;
     }
 
     try {
-      // 1. Immediately cancel any currently playing speech to prevent duplicate overlap
+      // 1. Immediately cancel any currently playing speech
       synthRef.current.cancel();
       setIsSpeaking(false);
+      isSpeakingRef.current = false;
 
-      // 2. Stop microphone listening while AI speaks (prevents recording AI's own voice)
-      if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch (e) {}
-      }
+      // 2. Temporarily pause microphone listening while AI speaks
+      shouldListenRef.current = false;
+      cleanupRecognition();
       setIsListening(false);
 
       // 3. Create fresh utterance
       const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Calibrate rate to 0.90 for clear, moderate Indian English pacing
       utterance.rate = 0.90;
       utterance.pitch = 1.0;
       utterance.lang = 'en-IN';
@@ -183,7 +214,7 @@ export function useSpeech() {
       const voices = voicesRef.current.length > 0 ? voicesRef.current : synthRef.current.getVoices();
       
       const indianVoice = voices.find(v => 
-        (v.lang === 'en-IN' || v.lang === 'en_IN' || v.lang.startsWith('en-IN') || v.lang === 'hi-IN') ||
+        (v.lang === 'en-IN' || v.lang === 'en_IN' || v.lang?.startsWith('en-IN') || v.lang === 'hi-IN') ||
         (v.name.toLowerCase().includes('india') || 
          v.name.toLowerCase().includes('indian') || 
          v.name.toLowerCase().includes('heera') || 
@@ -214,7 +245,6 @@ export function useSpeech() {
         setIsSpeaking(false);
         isSpeakingRef.current = false;
         if (onEndCallback) {
-          // Short natural pause (300ms) before triggering next step
           setTimeout(() => {
             onEndCallback();
           }, 300);
@@ -230,7 +260,6 @@ export function useSpeech() {
         }
       };
 
-      // Speak utterance
       synthRef.current.speak(utterance);
     } catch (err) {
       console.warn('Speech synthesis invocation failed:', err);
@@ -238,7 +267,7 @@ export function useSpeech() {
       isSpeakingRef.current = false;
       if (onEndCallback) onEndCallback();
     }
-  }, [isMuted]);
+  }, [cleanupRecognition]);
 
   const stopSpeaking = useCallback(() => {
     if (synthRef.current) {
@@ -247,6 +276,19 @@ export function useSpeech() {
       isSpeakingRef.current = false;
     }
   }, []);
+
+  // Cleanup all audio/speech on unmount
+  useEffect(() => {
+    return () => {
+      shouldListenRef.current = false;
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+      cleanupRecognition();
+      if (synthRef.current) {
+        try { synthRef.current.cancel(); } catch (e) {}
+      }
+    };
+  }, [cleanupRecognition]);
 
   return {
     isListening,
@@ -258,7 +300,15 @@ export function useSpeech() {
     speak,
     stopSpeaking,
     isMuted,
-    toggleMute: () => setIsMuted(prev => !prev),
+    toggleMute: () => {
+      setIsMuted(prev => {
+        const next = !prev;
+        if (next) {
+          stopListening();
+        }
+        return next;
+      });
+    },
     sttSupported,
     ttsSupported,
     micPermissionDenied,

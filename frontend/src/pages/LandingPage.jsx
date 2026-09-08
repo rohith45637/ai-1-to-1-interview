@@ -96,20 +96,52 @@ export function LandingPage({ onStartDirectInterview, onNavigateToResume, onNavi
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-surface-300 max-w-2xl mx-auto font-normal leading-relaxed">
+          <p className="text-base sm:text-lg text-surface-600 dark:text-surface-300 max-w-2xl mx-auto font-normal leading-relaxed">
             An AI-powered 1-to-1 mock interview platform that evaluates your answers, communication, and presentation skills in real time.
           </p>
+
+          {/* Top Real-Time Search Bar */}
+          <div className="pt-2 max-w-xl mx-auto w-full">
+            <div className="relative flex items-center">
+              <Search className="w-5 h-5 absolute left-4 text-brand-500 dark:text-brand-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search any job role, technology, or topic (e.g. React, Python, DevOps, System Design)..."
+                className="w-full pl-11 pr-24 py-3.5 rounded-2xl bg-white/90 dark:bg-surface-900/90 border-2 border-brand-500/30 hover:border-brand-500 focus:border-brand-500 text-sm text-surface-900 dark:text-white placeholder-surface-400 shadow-xl shadow-brand-500/10 focus:outline-none focus:ring-4 focus:ring-brand-500/20 transition-all"
+              />
+              {searchTerm ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 px-2 py-1 text-xs rounded-lg bg-surface-200 dark:bg-surface-800 text-surface-600 dark:text-surface-300 hover:text-surface-900 dark:hover:text-white transition-colors cursor-pointer"
+                >
+                  Clear
+                </button>
+              ) : (
+                <span className="absolute right-3.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-md border border-brand-500/20 hidden sm:inline-block">
+                  Live Search
+                </span>
+              )}
+            </div>
+            {searchTerm && (
+              <p className="text-xs text-left text-brand-600 dark:text-brand-400 font-semibold mt-2 px-2">
+                Showing {filteredRoles.length} matching role{filteredRoles.length === 1 ? '' : 's'} for "{searchTerm}"
+              </p>
+            )}
+          </div>
 
           {/* Primary & Secondary Call to Actions */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5">
             <Button
               variant="primary"
               size="lg"
-              onClick={() => onStartDirectInterview({ title: 'Full Stack Developer' })}
+              onClick={() => onStartDirectInterview(filteredRoles[0] || { title: 'Full Stack Developer' })}
               icon={Sparkles}
               className="w-full sm:w-auto font-bold shadow-xl shadow-brand-500/25"
             >
-              Start Interview
+              Start Interview {filteredRoles.length > 0 && searchTerm ? `(${filteredRoles[0].title})` : ''}
             </Button>
             
             <Button
@@ -125,21 +157,21 @@ export function LandingPage({ onStartDirectInterview, onNavigateToResume, onNavi
 
           {/* Key Stat Badges */}
           <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3.5 max-w-2xl mx-auto text-left">
-            <div className="p-3.5 rounded-2xl bg-surface-900/80 border border-surface-800 backdrop-blur-md">
-              <div className="text-2xl font-black text-brand-400">20+</div>
-              <div className="text-xs text-surface-400 font-medium">Curated Tech Roles</div>
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-surface-900/80 border border-surface-200 dark:border-surface-800 backdrop-blur-md shadow-sm">
+              <div className="text-2xl font-black text-brand-600 dark:text-brand-400">20+</div>
+              <div className="text-xs text-surface-500 dark:text-surface-400 font-medium">Curated Tech Roles</div>
             </div>
-            <div className="p-3.5 rounded-2xl bg-surface-900/80 border border-surface-800 backdrop-blur-md">
-              <div className="text-2xl font-black text-emerald-400">100%</div>
-              <div className="text-xs text-surface-400 font-medium">Real-time Voice STT</div>
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-surface-900/80 border border-surface-200 dark:border-surface-800 backdrop-blur-md shadow-sm">
+              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">100%</div>
+              <div className="text-xs text-surface-500 dark:text-surface-400 font-medium">Real-time Voice STT</div>
             </div>
-            <div className="p-3.5 rounded-2xl bg-surface-900/80 border border-surface-800 backdrop-blur-md">
-              <div className="text-2xl font-black text-indigo-400">6-Dim</div>
-              <div className="text-xs text-surface-400 font-medium">Assessment Rubrics</div>
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-surface-900/80 border border-surface-200 dark:border-surface-800 backdrop-blur-md shadow-sm">
+              <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">6-Dim</div>
+              <div className="text-xs text-surface-500 dark:text-surface-400 font-medium">Assessment Rubrics</div>
             </div>
-            <div className="p-3.5 rounded-2xl bg-surface-900/80 border border-surface-800 backdrop-blur-md">
-              <div className="text-2xl font-black text-amber-400">ATS</div>
-              <div className="text-xs text-surface-400 font-medium">Resume Match Radar</div>
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-surface-900/80 border border-surface-200 dark:border-surface-800 backdrop-blur-md shadow-sm">
+              <div className="text-2xl font-black text-amber-600 dark:text-amber-400">ATS</div>
+              <div className="text-xs text-surface-500 dark:text-surface-400 font-medium">Resume Match Radar</div>
             </div>
           </div>
         </div>

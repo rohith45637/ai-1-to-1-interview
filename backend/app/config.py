@@ -14,7 +14,7 @@ class Settings(BaseSettings):
         else "sqlite:///./interview.db"
     )
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
-    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000")
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,*")
     MAX_UPLOAD_SIZE_MB: int = 10
     DEFAULT_USER_ID: str = "candidate_default_01"
 

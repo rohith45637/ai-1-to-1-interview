@@ -110,7 +110,7 @@ export function UserWebcam({
   };
 
   return (
-    <div className="relative w-full h-full min-h-[300px] sm:min-h-[340px] rounded-3xl overflow-hidden bg-gradient-to-br from-surface-900 via-surface-925 to-surface-950 border border-surface-800 shadow-2xl flex flex-col justify-between p-5 group">
+    <div className="relative w-full h-full min-h-[240px] sm:min-h-[320px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-surface-900 via-surface-925 to-surface-950 border border-surface-800 shadow-2xl flex flex-col justify-between p-3.5 sm:p-5 group">
 
       {/* Top Bar: Candidate Tag & Status Controls */}
       <div className="relative z-20 flex items-center justify-between flex-wrap gap-2">

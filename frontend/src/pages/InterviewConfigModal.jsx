@@ -172,7 +172,13 @@ export function InterviewConfigModal({
       maxWidth="max-w-2xl"
     >
       {currentStep === 1 ? (
-        <div className="space-y-6 text-xs text-surface-300">
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleGoToDeviceCheck();
+          }}
+          className="space-y-6 text-xs text-surface-600 dark:text-surface-300"
+        >
           
           {/* Target Job Role */}
           <div className="space-y-2">
@@ -301,17 +307,15 @@ export function InterviewConfigModal({
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="pt-4 border-t border-surface-800 flex justify-end gap-3">
-            <Button variant="ghost" size="md" onClick={onClose}>
+          </div>          {/* Action Buttons */}
+          <div className="pt-4 border-t border-surface-200 dark:border-surface-800 flex justify-end gap-3">
+            <Button variant="ghost" size="md" onClick={onClose} type="button">
               Cancel
             </Button>
             <Button 
+              type="submit"
               variant="primary" 
               size="md" 
-              onClick={handleGoToDeviceCheck} 
               icon={ChevronRight}
               iconPosition="right"
               className="font-bold"
@@ -320,16 +324,23 @@ export function InterviewConfigModal({
             </Button>
           </div>
 
-        </div>
+        </form>
       ) : (
         /* STEP 2: REAL PRE-INTERVIEW DEVICE CHECK */
-        <div className="space-y-6 text-xs text-surface-300">
-          <div className="p-4 rounded-2xl bg-surface-950 border border-surface-800 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-surface-800">
-              <span className="font-bold text-white text-sm">Hardware & Network Diagnostics</span>
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLaunch();
+          }}
+          className="space-y-6 text-xs text-surface-600 dark:text-surface-300"
+        >
+          <div className="p-4 rounded-2xl bg-surface-50 dark:bg-surface-950 border border-surface-200 dark:border-surface-800 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-surface-200 dark:border-surface-800">
+              <span className="font-bold text-surface-900 dark:text-white text-sm">Hardware & Network Diagnostics</span>
               <button
+                type="button"
                 onClick={runDeviceCheck}
-                className="inline-flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Re-check</span>
@@ -339,14 +350,14 @@ export function InterviewConfigModal({
             {/* 4 Hardware Status Rows */}
             <div className="space-y-3">
               {/* Camera */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-900 border border-surface-800">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-surface-800 text-brand-400">
+                  <div className="p-2 rounded-lg bg-surface-100 dark:bg-surface-800 text-brand-500 dark:text-brand-400">
                     <Camera className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-white block">Camera</span>
-                    <span className="text-[11px] text-surface-400">Candidate video feed</span>
+                    <span className="font-bold text-surface-900 dark:text-white block">Camera</span>
+                    <span className="text-[11px] text-surface-500 dark:text-surface-400">Candidate video feed</span>
                   </div>
                 </div>
                 <div>
@@ -363,14 +374,14 @@ export function InterviewConfigModal({
               </div>
 
               {/* Microphone */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-900 border border-surface-800">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-surface-800 text-indigo-400">
+                  <div className="p-2 rounded-lg bg-surface-100 dark:bg-surface-800 text-indigo-500 dark:text-indigo-400">
                     <Mic className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-white block">Microphone</span>
-                    <span className="text-[11px] text-surface-400">Speech recognition audio</span>
+                    <span className="font-bold text-surface-900 dark:text-white block">Microphone</span>
+                    <span className="text-[11px] text-surface-500 dark:text-surface-400">Speech recognition audio</span>
                   </div>
                 </div>
                 <div>
@@ -387,14 +398,14 @@ export function InterviewConfigModal({
               </div>
 
               {/* Speaker */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-900 border border-surface-800">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-surface-800 text-emerald-400">
+                  <div className="p-2 rounded-lg bg-surface-100 dark:bg-surface-800 text-emerald-500 dark:text-emerald-400">
                     <Volume2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-white block">Speaker & Voice Synthesis</span>
-                    <span className="text-[11px] text-surface-400">AI interviewer audio</span>
+                    <span className="font-bold text-surface-900 dark:text-white block">Speaker & Voice Synthesis</span>
+                    <span className="text-[11px] text-surface-500 dark:text-surface-400">AI interviewer audio</span>
                   </div>
                 </div>
                 <div>
@@ -411,14 +422,14 @@ export function InterviewConfigModal({
               </div>
 
               {/* Internet */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-900 border border-surface-800">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-surface-800 text-amber-400">
+                  <div className="p-2 rounded-lg bg-surface-100 dark:bg-surface-800 text-amber-500 dark:text-amber-400">
                     <Globe className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-white block">Internet Connectivity</span>
-                    <span className="text-[11px] text-surface-400">Gemini backend connection</span>
+                    <span className="font-bold text-surface-900 dark:text-white block">Internet Connectivity</span>
+                    <span className="text-[11px] text-surface-500 dark:text-surface-400">Gemini backend connection</span>
                   </div>
                 </div>
                 <div>
@@ -437,8 +448,9 @@ export function InterviewConfigModal({
           </div>
 
           {/* Modal Footer Controls */}
-          <div className="pt-4 border-t border-surface-800 flex justify-between items-center">
+          <div className="pt-4 border-t border-surface-200 dark:border-surface-800 flex justify-between items-center">
             <Button 
+              type="button"
               variant="outline" 
               size="md" 
               onClick={() => setCurrentStep(1)}
@@ -448,16 +460,16 @@ export function InterviewConfigModal({
             </Button>
             
             <Button
-              variant="primary"
-              size="md"
-              onClick={handleLaunch}
+              type="submit"
+              variant="primary" 
+              size="md" 
               icon={Sparkles}
               className="font-bold"
             >
               Enter Interview Room
             </Button>
           </div>
-        </div>
+        </form>
       )}
     </Modal>
   );
